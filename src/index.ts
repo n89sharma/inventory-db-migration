@@ -1,5 +1,6 @@
 import { prisma } from './prisma.js'
 import mysql, { RowDataPacket } from 'mysql2/promise';
+import { AssetType } from '../generated/prisma/enums.js';
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -60,7 +61,10 @@ async function createBrands() {
         FROM brand
         `
 
-    const [results, fields] = await con.query(sql)
+    interface BrandRow {
+        brand_name: string
+    }
+    const [results, fields] = await con.query<BrandRow[] & RowDataPacket[]>(sql)
 
     var brands = Array.from(results).map((e) => {
         return {
@@ -90,8 +94,14 @@ async function createModels() {
         JOIN brand b USING(brand_id)
         JOIN asset_type t USING(asset_type_id)
         `
-
-    const [results, fields] = await con.query(sql)
+    interface ModelRow {
+        brand_name: string,
+        model_name: string,
+        asset_type: AssetType,
+        weight: number,
+        size: number
+    }
+    const [results, fields] = await con.query<ModelRow[] & RowDataPacket[]>(sql)
 
     var models = Array.from(results).map((e) => {
         return {
