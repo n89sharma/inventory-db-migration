@@ -59,6 +59,7 @@ async function createBrands() {
         SELECT
             name AS brand_name
         FROM brand
+        GROUP BY 1
         `
 
     interface BrandRow {
@@ -82,17 +83,18 @@ async function createBrands() {
 async function createModels() {
     const sql = `
         SELECT
+            m.name AS model_name,
             b.name AS brand_name,
-            m.name AS model_name, 
-            CASE
-                WHEN t.name='Accessories' THEN 'ACCESSORY'
-                ELSE UPPER(t.name)
+                CASE
+                WHEN MAX(t.name)='Accessories' THEN 'ACCESSORY'
+                ELSE UPPER(MAX(t.name))
             END AS asset_type,
-            m.weight,
-            m.size
+            MAX(m.weight) AS weight,
+            MAX(m.size) AS size
         FROM model m
-        JOIN brand b USING(brand_id)
-        JOIN asset_type t USING(asset_type_id)
+        JOIN brand b USING (brand_id)
+        JOIN asset_type t USING (asset_type_id)
+        GROUP BY 1,2
         `
     interface ModelRow {
         brand_name: string,
