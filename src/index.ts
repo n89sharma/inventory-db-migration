@@ -57,7 +57,7 @@ main()
 async function createBrands() {
     const sql = `
         SELECT
-            name AS brand_name
+            TRIM(name) AS brand_name
         FROM brand
         GROUP BY 1
         `
@@ -83,12 +83,9 @@ async function createBrands() {
 async function createModels() {
     const sql = `
         SELECT
-            m.name AS model_name,
-            b.name AS brand_name,
-                CASE
-                WHEN MAX(t.name)='Accessories' THEN 'ACCESSORY'
-                ELSE UPPER(MAX(t.name))
-            END AS asset_type,
+            TRIM(m.name) AS model_name,
+            TRIM(b.name) AS brand_name,
+            TRIM(t.name) AS asset_type,
             MAX(m.weight) AS weight,
             MAX(m.size) AS size
         FROM model m
@@ -111,7 +108,7 @@ async function createModels() {
                 connect: { name: e.brand_name },
             },
             name: e.model_name,
-            asset_type: e.asset_type,
+            asset_type: assetTypeMap[e.asset_type],
             weight: parseFloat(e.weight),
             size: parseFloat(e.size)
         }
@@ -125,3 +122,13 @@ async function createModels() {
     }
 }
 
+const assetTypeMap: Record<string, AssetType> = {
+    'Copier': AssetType.COPIER,
+    'Finisher': AssetType.FINISHER,
+    'Accessories': AssetType.ACCESSORY,
+    'Scanner': AssetType.SCANNER,
+    'Plotter': AssetType.PLOTTER,
+    'Printer': AssetType.PRINTER,
+    'Warehouse Supplies': AssetType.WAREHOUSE_SUPPLIES,
+    'Fax': AssetType.FAX
+}
