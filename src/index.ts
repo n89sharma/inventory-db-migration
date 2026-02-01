@@ -3,7 +3,63 @@ import mysql, { RowDataPacket } from 'mysql2/promise';
 import { AssetType } from '../generated/prisma/enums.js';
 
 //--------------------------------------------------------------------
-// MODELS
+// (6) PART
+
+//--------------------------------------------------------------------
+// (6) ERROR
+
+//--------------------------------------------------------------------
+// (5) ERROR CATEGORY
+
+//--------------------------------------------------------------------
+// (4) LOCATION
+
+const locationQuery =`
+    SELECT 
+        TRIM(w.city_alias) AS city_code,
+        TRIM(l.name) AS location
+    FROM inventory_location l
+    JOIN warehouse w USING(warehouse_id)
+    GROUP BY 1,2
+`
+
+interface LocationRow extends RowDataPacket {
+    city_code: string,
+    location: string
+}
+
+const locationMapper = (r: LocationRow) => ({
+    warehouse: { connect: { city_code: r.city_code } },
+    location: r.location
+})
+
+const locationCreator = (e: any) => prisma.location.createMany({data: e})
+
+//--------------------------------------------------------------------
+// (3) WAREHOUSE
+
+const warehouseQuery = `
+    SELECT
+        city_alias AS city_code,
+        name AS street
+    FROM warehouse
+`
+
+interface WarehouseRow extends RowDataPacket {
+    city_code: string,
+    street: string
+}
+
+const warehouseMapper = (r: WarehouseRow) => ({
+    city_code: r.city_code,
+    street: r.street
+})
+
+const warehouseCreator = (e: any) => prisma.warehouse.createMany({data: e})
+
+
+//--------------------------------------------------------------------
+// (2) MODELS
 const modelQuery = `
     SELECT
         TRIM(m.name) AS model_name,
@@ -38,7 +94,7 @@ const modelMapper = (r: ModelRow) => ({
 const modelCreator = (e: any) => prisma.model.create({data: e})
 
 //--------------------------------------------------------------------
-// BRANDS
+// (1) BRANDS
 const brandQuery = `
     SELECT
         TRIM(name) AS brand_name
@@ -109,11 +165,12 @@ async function createManyEntities<TSource extends RowDataPacket, TTarget> (
 
 async function main() {
     // Phase 1: Create reference data
-    await createManyEntities(brandQuery, brandMapper, brandCreator) //1
-    await createEntities(modelQuery, modelMapper, modelCreator)     //2
+    //await createManyEntities(brandQuery, brandMapper, brandCreator) //1
+    //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
-    // await createLocations()         // 3
-    // await createWarehouses()        // 4
+    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) // 3
+    await createManyEntities(locationQuery, locationMapper, locationCreator)    //4
+    // await createLocations()         // 4
     // await createOrganizations()     // 5
     // await createErrorCategories()   // 6
     // await createErrors()            // 7
