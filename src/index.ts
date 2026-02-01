@@ -2,87 +2,6 @@ import { prisma } from './prisma.js'
 import mysql, { RowDataPacket } from 'mysql2/promise';
 import { AssetType } from '../generated/prisma/enums.js';
 
-const con = await mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB,
-    port: parseInt(process.env.DB_PORT!)
-})
-
-async function main() {
-    // Phase 1: Create reference data
-    await createManyEntities(brandQuery, brandMapper, brandCreator) //1
-    await createEntities(modelQuery, modelMapper, modelCreator)     //2
-    
-    // await createLocations()         // 3
-    // await createWarehouses()        // 4
-    // await createOrganizations()     // 5
-    // await createErrorCategories()   // 6
-    // await createErrors()            // 7
-    // await createParts()             // 8
-
-    // // Phase 2: Create transactions
-    // await createArrivals()
-    // await createDepartures()
-    // await createTransfers()
-    // await createHolds()
-    // await createInvoices()
-
-    // // Phase 3: Create assets (depends on everything above)
-    // await createAssets()
-
-    // // Phase 4: Create relationships
-    // await updateAccessoriesForAssets()
-    // await updateErrorsForAssets()
-    // await updateCommentsForAssets()
-
-
-    return 0
-}
-
-main()
-    .then(async () => {
-        await prisma.$disconnect()
-        await con.end()
-        process.exit(0)
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    })
-
-
-async function createEntities<TSource extends RowDataPacket, TTarget> (
-    query: string,
-    mapper: (r: TSource) => (TTarget),
-    creator: (data: TTarget) => Promise<any>
-) : Promise<number> {
-
-    const [results] = await con.query<TSource[]>(query)
-    const mappedEntities = Array.from(results).map(mapper) 
-    for (const entitity of mappedEntities) {
-        await creator(entitity)
-    }
-    return mappedEntities.length
-}
-
-async function createManyEntities<TSource extends RowDataPacket, TTarget> (
-    query: string,
-    mapper: (r: TSource) => (TTarget),
-    creator: (data: TTarget[]) => Promise<any>
-) : Promise<number> {
-
-    const [results] = await con.query<TSource[]>(query)
-    const mappedEntities = Array.from(results).map(mapper) 
-    await creator(mappedEntities)
-    return mappedEntities.length
-}
-
-//--------------------------------------------------------------------
-// LOCATIONS
-
 //--------------------------------------------------------------------
 // MODELS
 const modelQuery = `
@@ -147,3 +66,86 @@ const assetTypeMap: Record<string, AssetType> = {
     'Warehouse Supplies': AssetType.WAREHOUSE_SUPPLIES,
     'Fax': AssetType.FAX
 }
+
+//--------------------------------------------------------------------
+// CREATORS
+
+const con = await mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB,
+    port: parseInt(process.env.DB_PORT!)
+})
+
+async function createEntities<TSource extends RowDataPacket, TTarget> (
+    query: string,
+    mapper: (r: TSource) => (TTarget),
+    creator: (data: TTarget) => Promise<any>
+) : Promise<number> {
+
+    const [results] = await con.query<TSource[]>(query)
+    const mappedEntities = Array.from(results).map(mapper) 
+    for (const entitity of mappedEntities) {
+        await creator(entitity)
+    }
+    return mappedEntities.length
+}
+
+async function createManyEntities<TSource extends RowDataPacket, TTarget> (
+    query: string,
+    mapper: (r: TSource) => (TTarget),
+    creator: (data: TTarget[]) => Promise<any>
+) : Promise<number> {
+
+    const [results] = await con.query<TSource[]>(query)
+    const mappedEntities = Array.from(results).map(mapper) 
+    await creator(mappedEntities)
+    return mappedEntities.length
+}
+
+//--------------------------------------------------------------------
+// MAIN
+
+async function main() {
+    // Phase 1: Create reference data
+    await createManyEntities(brandQuery, brandMapper, brandCreator) //1
+    await createEntities(modelQuery, modelMapper, modelCreator)     //2
+    
+    // await createLocations()         // 3
+    // await createWarehouses()        // 4
+    // await createOrganizations()     // 5
+    // await createErrorCategories()   // 6
+    // await createErrors()            // 7
+    // await createParts()             // 8
+
+    // // Phase 2: Create transactions
+    // await createArrivals()
+    // await createDepartures()
+    // await createTransfers()
+    // await createHolds()
+    // await createInvoices()
+
+    // // Phase 3: Create assets (depends on everything above)
+    // await createAssets()
+
+    // // Phase 4: Create relationships
+    // await updateAccessoriesForAssets()
+    // await updateErrorsForAssets()
+    // await updateCommentsForAssets()
+
+
+    return 0
+}
+
+main()
+    .then(async () => {
+        await prisma.$disconnect()
+        await con.end()
+        process.exit(0)
+    })
+    .catch(async (e) => {
+        console.error(e)
+        await prisma.$disconnect()
+        process.exit(1)
+    })
