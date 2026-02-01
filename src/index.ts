@@ -12,8 +12,9 @@ const con = await mysql.createConnection({
 
 async function main() {
     // Phase 1: Create reference data
-    await createBrands()            // 1
-    await createModels()            // 2
+    await createManyEntities(brandQuery, brandMapper, brandCreator) //1
+    await createEntities(modelQuery, modelMapper, modelCreator)     //2
+    
     // await createLocations()         // 3
     // await createWarehouses()        // 4
     // await createOrganizations()     // 5
@@ -52,76 +53,90 @@ main()
         process.exit(1)
     })
 
-//--------------------------------------------------------------------
-// MODELS
-async function createBrands() {
-    const sql = `
-        SELECT
-            TRIM(name) AS brand_name
-        FROM brand
-        GROUP BY 1
-        `
 
-    interface BrandRow {
-        brand_name: string
+async function createEntities<TSource extends RowDataPacket, TTarget> (
+    query: string,
+    mapper: (r: TSource) => (TTarget),
+    creator: (data: TTarget) => Promise<any>
+) : Promise<number> {
+
+    const [results] = await con.query<TSource[]>(query)
+    const mappedEntities = Array.from(results).map(mapper) 
+    for (const entitity of mappedEntities) {
+        await creator(entitity)
     }
-    const [results, fields] = await con.query<BrandRow[] & RowDataPacket[]>(sql)
+    return mappedEntities.length
+}
 
-    var brands = Array.from(results).map((e) => {
-        return {
-            name: e.brand_name
-        }
-    })
-    const addedBrands = await prisma.brand.createMany({
-        data: brands
-    })
-    console.log(addedBrands)
+async function createManyEntities<TSource extends RowDataPacket, TTarget> (
+    query: string,
+    mapper: (r: TSource) => (TTarget),
+    creator: (data: TTarget[]) => Promise<any>
+) : Promise<number> {
+
+    const [results] = await con.query<TSource[]>(query)
+    const mappedEntities = Array.from(results).map(mapper) 
+    await creator(mappedEntities)
+    return mappedEntities.length
 }
 
 //--------------------------------------------------------------------
+// LOCATIONS
+
+//--------------------------------------------------------------------
 // MODELS
-async function createModels() {
-    const sql = `
-        SELECT
-            TRIM(m.name) AS model_name,
-            TRIM(b.name) AS brand_name,
-            TRIM(t.name) AS asset_type,
-            MAX(m.weight) AS weight,
-            MAX(m.size) AS size
-        FROM model m
-        JOIN brand b USING (brand_id)
-        JOIN asset_type t USING (asset_type_id)
-        GROUP BY 1,2
-        `
-    interface ModelRow {
-        brand_name: string,
-        model_name: string,
-        asset_type: AssetType,
-        weight: number,
-        size: number
-    }
-    const [results, fields] = await con.query<ModelRow[] & RowDataPacket[]>(sql)
+const modelQuery = `
+    SELECT
+        TRIM(m.name) AS model_name,
+        TRIM(b.name) AS brand_name,
+        TRIM(t.name) AS asset_type,
+        MAX(m.weight) AS weight,
+        MAX(m.size) AS size
+    FROM model m
+    JOIN brand b USING (brand_id)
+    JOIN asset_type t USING (asset_type_id)
+    GROUP BY 1,2
+`
 
-    var models = Array.from(results).map((e) => {
-        return {
-            brand: {
-                connect: { name: e.brand_name },
-            },
-            name: e.model_name,
-            asset_type: assetTypeMap[e.asset_type],
-            weight: parseFloat(e.weight),
-            size: parseFloat(e.size)
-        }
-    })
-
-    for (const model of models) {
-        var createdModel = await prisma.model.create({
-            data: model
-        })
-        console.log(createdModel)
-    }
+interface ModelRow extends RowDataPacket {
+    brand_name: string,
+    model_name: string,
+    asset_type: AssetType,
+    weight: number,
+    size: number
 }
 
+const modelMapper = (r: ModelRow) => ({
+    brand: {
+        connect: { name: r.brand_name },
+    },
+    name: r.model_name,
+    asset_type: assetTypeMap[r.asset_type],
+    weight: r.weight,
+    size: r.size
+})
+
+const modelCreator = (e: any) => prisma.model.create({data: e})
+
+//--------------------------------------------------------------------
+// BRANDS
+const brandQuery = `
+    SELECT
+        TRIM(name) AS brand_name
+    FROM brand
+    GROUP BY 1
+`
+
+interface BrandRow extends RowDataPacket{
+    brand_name: string
+}
+
+const brandMapper = (r: BrandRow) => ({ name: r.brand_name})
+
+const brandCreator = (e: any) => prisma.brand.createMany({data: e})
+
+//--------------------------------------------------------------------
+// ASSET TYPES
 const assetTypeMap: Record<string, AssetType> = {
     'Copier': AssetType.COPIER,
     'Finisher': AssetType.FINISHER,
