@@ -21,8 +21,8 @@ interface ModelRow extends RowDataPacket {
     brand_name: string,
     model_name: string,
     asset_type: AssetType,
-    weight: number,
-    size: number
+    weight: string,
+    size: string
 }
 
 const modelMapper = (r: ModelRow) => ({
@@ -31,8 +31,8 @@ const modelMapper = (r: ModelRow) => ({
     },
     name: r.model_name,
     asset_type: assetTypeMap[r.asset_type],
-    weight: r.weight,
-    size: r.size
+    weight: parseFloat(r.weight),
+    size: parseFloat(r.size)
 })
 
 const modelCreator = (e: any) => prisma.model.create({data: e})
