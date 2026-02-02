@@ -1,6 +1,6 @@
 import { prisma } from './prisma.js'
 import mysql, { RowDataPacket } from 'mysql2/promise';
-import { AssetType } from '../generated/prisma/enums.js';
+import { AssetType, TechnicalStatus } from '../generated/prisma/enums.js';
 
 //--------------------------------------------------------------------
 // (7) ORGANIZATION
@@ -97,7 +97,10 @@ const errorQuery = `
         TRIM(b.name) AS brand_name,
         TRIM(e.short_name) AS code,
         MAX(TRIM(e.name)) AS description,
-        MAX(TRIM(c.category_name)) AS category
+        CASE 
+            WHEN MAX(TRIM(c.category_name)) LIKE '%ÃƒÆ’Ã%' THEN 'Unknown'
+            ELSE MAX(TRIM(c.category_name))
+        END AS category
     FROM error e
     LEFT JOIN error_category c USING(error_category_id)
     JOIN brand b ON b.brand_id = c.Brand_id
@@ -111,14 +114,14 @@ interface ErrorRow extends RowDataPacket {
     category: string
 }
 
-const errorMapper = (r: ErrorRow) => ({
-    brand: { connect: { name: r.brand_name}},
+const errorMapper = (r: ErrorRow, brandMap: Record<string, number>) => ({
+    brand_id: brandMap[r.brand_name],
     code: r.code,
     description: r.description,
     category: r.category
 })
 
-const errorCreator = (e: any) => prisma.error.create({data: e})
+const errorCreator = (e: any) => prisma.error.createMany({data: e})
 
 //--------------------------------------------------------------------
 // (4) LOCATION
@@ -217,6 +220,15 @@ const brandMapper = (r: BrandRow) => ({ name: r.brand_name})
 
 const brandCreator = (e: any) => prisma.brand.createMany({data: e})
 
+async function getBrandMap() {
+  const brands = await prisma.brand.findMany();
+  
+  return brands.reduce((map, brand) => {
+    map[brand.name] = brand.id;
+    return map;
+  }, {} as Record<string, number>);
+}
+
 //--------------------------------------------------------------------
 // ASSET TYPES
 const assetTypeMap: Record<string, AssetType> = {
@@ -228,6 +240,16 @@ const assetTypeMap: Record<string, AssetType> = {
     'Printer': AssetType.PRINTER,
     'Warehouse Supplies': AssetType.WAREHOUSE_SUPPLIES,
     'Fax': AssetType.FAX
+}
+
+//--------------------------------------------------------------------
+// TECHNICAL STATUS
+const technicalStatusMap: Record<string, TechnicalStatus> ={
+    'Not Tested': TechnicalStatus.NOT_TESTED,
+    'Error': TechnicalStatus.ERROR,
+    'Prepared': TechnicalStatus.PREPARED,
+    'Pending': TechnicalStatus.PENDING,
+    'Ok': TechnicalStatus.OK
 }
 
 //--------------------------------------------------------------------
@@ -247,7 +269,7 @@ async function createEntities<TSource extends RowDataPacket, TTarget> (
     creator: (data: TTarget) => Promise<any>
 ) : Promise<number> {
 
-    console.log('Fetching source entities')
+    console.log('fetching source entities')
     const [results] = await con.query<TSource[]>(query)
     console.log('mapping')
     const mappedEntities = Array.from(results).map(mapper) 
@@ -265,12 +287,30 @@ async function createManyEntities<TSource extends RowDataPacket, TTarget> (
     creator: (data: TTarget[]) => Promise<any>
 ) : Promise<number> {
 
-    console.log('Fetching source entities')
+    console.log('fetching source entities')
     const [results] = await con.query<TSource[]>(query)
     console.log('mapping')
     const mappedEntities = Array.from(results).map(mapper) 
     console.log('creating new entities')
     await creator(mappedEntities)
+    console.log(`done. ${mappedEntities.length} created`)
+    return mappedEntities.length
+}
+
+async function createErrorEntities() {
+
+    console.log('fetching source entities')
+    const [results] = await con.query<ErrorRow[]>(errorQuery)
+    
+    console.log('mapping')
+    const brandMap = await getBrandMap()
+    const mappedEntities = Array.from(results).map((r) => {
+        return errorMapper(r, brandMap)
+    }) 
+    
+    console.log('creating new entities')
+    await errorCreator(mappedEntities)
+    
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
@@ -284,15 +324,16 @@ async function main() {
     //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
     //console.log('warehouse')
-    //await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) //3
+    //await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator)   //3
     //console.log('location')
-    //await createEntities(locationQuery, locationMapper, locationCreator)        //4
+    //await createEntities(locationQuery, locationMapper, locationCreator)          //4
+    //console.log('part')
+    //await createManyEntities(partQuery, partMapper, partCreator)  //5
+    //console.log('org')
+    //await createManyEntities(orgQuery, orgMapper, orgCreator)     //6
+
     console.log('error')
-    await createEntities(errorQuery, errorMapper, errorCreator)                 //5
-    console.log('part')
-    await createManyEntities(partQuery, partMapper, partCreator)                //6
-    console.log('org')
-    await createManyEntities(orgQuery, orgMapper, orgCreator)                   //7
+    await createErrorEntities()                                     //7
 
     // // Phase 2: Create transactions
     // await createArrivals()
