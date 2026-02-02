@@ -3,13 +3,35 @@ import mysql, { RowDataPacket } from 'mysql2/promise';
 import { AssetType } from '../generated/prisma/enums.js';
 
 //--------------------------------------------------------------------
-// (6) PART
+// (5) ERROR
 
-//--------------------------------------------------------------------
-// (6) ERROR
+const errorQuery = `
+    SELECT 
+        TRIM(b.name) AS brand_name,
+        TRIM(e.short_name) AS code,
+        MAX(TRIM(e.name)) AS description,
+        MAX(TRIM(c.category_name)) AS category
+    FROM error e
+    JOIN brand b ON b.brand_id = c.Brand_id
+    LEFT JOIN error_category c USING(error_category_id)
+    GROUP BY 1,2;
+`
 
-//--------------------------------------------------------------------
-// (5) ERROR CATEGORY
+interface ErrorRow extends RowDataPacket {
+    brand_name: string,
+    code: string,
+    description: string,
+    category: string
+}
+
+const errorMapper = (r: ErrorRow) => ({
+    brand: { connect: { name: r.brand_name}},
+    code: r.code,
+    description: r.description,
+    category: r.category
+})
+
+const errorCreator = (e: any) => prisma.error.create({data: e})
 
 //--------------------------------------------------------------------
 // (4) LOCATION
@@ -33,7 +55,7 @@ const locationMapper = (r: LocationRow) => ({
     location: r.location
 })
 
-const locationCreator = (e: any) => prisma.location.createMany({data: e})
+const locationCreator = (e: any) => prisma.location.create({data: e})
 
 //--------------------------------------------------------------------
 // (3) WAREHOUSE
@@ -82,9 +104,7 @@ interface ModelRow extends RowDataPacket {
 }
 
 const modelMapper = (r: ModelRow) => ({
-    brand: {
-        connect: { name: r.brand_name },
-    },
+    brand: { connect: { name: r.brand_name } },
     name: r.model_name,
     asset_type: assetTypeMap[r.asset_type],
     weight: parseFloat(r.weight),
@@ -168,13 +188,11 @@ async function main() {
     //await createManyEntities(brandQuery, brandMapper, brandCreator) //1
     //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
-    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) // 3
-    await createManyEntities(locationQuery, locationMapper, locationCreator)    //4
-    // await createLocations()         // 4
-    // await createOrganizations()     // 5
-    // await createErrorCategories()   // 6
-    // await createErrors()            // 7
-    // await createParts()             // 8
+    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator)     //3
+    await createManyEntities(locationQuery, locationMapper, locationCreator)        //4
+    await createManyEntities(errorQuery, errorMapper, errorCreator)                 //5
+    // await createOrganizations()     // 6
+    // await createParts()             // 7
 
     // // Phase 2: Create transactions
     // await createArrivals()
@@ -190,7 +208,6 @@ async function main() {
     // await updateAccessoriesForAssets()
     // await updateErrorsForAssets()
     // await updateCommentsForAssets()
-
 
     return 0
 }

@@ -114,12 +114,11 @@ enum DataField {
 // MODELS
 model Asset {
   id                        Int                      @id @default(autoincrement())
-  barcode                   String                   @unique @db.VarChar(15)
+  barcode                   String                   @unique @db.VarChar(50)
   serial_number             String                   @db.VarChar(50)
-  brand_id                  Int
   model_id                  Int
   warehouse_id              Int
-  asset_location            String?  @db.VarChar(25)
+  asset_location            String?                  @db.VarChar(50)
   asset_type                AssetType
   tracking_status           TrackingStatus
   exit_status               ExitStatus
@@ -129,12 +128,10 @@ model Asset {
   arrival_id                Int?
   departure_id              Int?
   hold_id                   Int?
-  is_held                   Boolean
   cost                      Cost?
   technical_specification   TechnicalSpecification?
   created_at                DateTime
 
-  brand                     Brand                    @relation(fields: [brand_id], references: [id])
   model                     Model                    @relation(fields: [model_id], references: [id])
   warehouse                 Warehouse                @relation(fields: [warehouse_id], references: [id])
   location                  Location?                @relation(fields: [warehouse_id, asset_location], references: [warehouse_id, location])
@@ -150,13 +147,22 @@ model Asset {
   files                     File[]
   comments                  Comment[]
   asset_history             AssetHistory[]
+
+  @@index([serial_number])
+  @@index([model_id, warehouse_id])
+  @@index([model_id, warehouse_id, exit_status, tracking_status])
+  @@index([arrival_id])
+  @@index([departure_id])
+  @@index([hold_id])
+  @@index([purchase_invoice_id])
+  @@index([sales_invoice_id])
 }
 
 model TechnicalSpecification {
   id                 Int     @id @default(autoincrement())
   asset_id           Int     @unique
   cassettes          Int?
-  internal_finisher  String? @db.VarChar(15)
+  internal_finisher  String? @db.Text
   meter_black        Int?
   meter_colour       Int?
   meter_total        Int?
@@ -171,13 +177,13 @@ model TechnicalSpecification {
 model Cost {
   id                Int     @id @default(autoincrement())
   asset_id          Int     @unique
-  purchase_cost     Decimal? @db.Money
-  transport_cost    Decimal? @db.Money
-  processing_cost   Decimal? @db.Money
-  other_cost        Decimal? @db.Money
-  parts_cost        Decimal? @db.Money
-  total_cost        Decimal? @db.Money
-  sale_price        Decimal? @db.Money
+  purchase_cost     Decimal? @db.Decimal(12,2)
+  transport_cost    Decimal? @db.Decimal(12,2)
+  processing_cost   Decimal? @db.Decimal(12,2)
+  other_cost        Decimal? @db.Decimal(12,2)
+  parts_cost        Decimal? @db.Decimal(12,2)
+  total_cost        Decimal? @db.Decimal(12,2)
+  sale_price        Decimal? @db.Decimal(12,2)
 
   asset             Asset   @relation(fields: [asset_id], references: [id])
 }
@@ -191,23 +197,18 @@ model AssetAccessory {
   @@id([asset_id, accessory])
 }
 
-model ErrorCategory {
-  id        Int     @id @default(autoincrement())
-  brand_id  Int
-  category  String  @unique @db.VarChar(100)
-
-  brand     Brand   @relation(fields: [brand_id], references: [id])
-  errors    Error[]
-}
-
 model Error {
   id                  Int             @id @default(autoincrement())
-  error_category_id   Int
-  code                String          @unique @db.VarChar(15)
-  description         String?
+  brand_id            Int
 
-  category            ErrorCategory   @relation(fields: [error_category_id], references: [id])
+  code                String          @db.Char(10)
+  description         String?
+  category            String          @db.Text
+
+  brand               Brand           @relation(fields: [brand_id], references: [id])
   asset_errors        AssetError[]
+  
+  @@unique([brand_id, code])
 }
 
 model AssetError {
@@ -229,11 +230,11 @@ model AssetError {
 
 model Part {
   id            Int     @id @default(autoincrement())
-  description   String  @db.VarChar(100)
-  part_number   String  @unique @db.VarChar(25)
-  dealer_price  Decimal @db.Money
-  sale_price    Decimal @db.Money
-  cost          Decimal @db.Money
+  description   String  @db.Text
+  part_number   String  @unique @db.VarChar(50)
+  dealer_price  Decimal @db.Decimal(12,2)
+  sale_price    Decimal @db.Decimal(12,2)
+  cost          Decimal @db.Decimal(12,2)
   asset_parts   AssetPart[]
 }
 
@@ -253,7 +254,7 @@ model AssetPart {
 
 model Transfer {
   id               Int      @id @default(autoincrement())
-  transfer_number  String   @unique @db.VarChar(15)
+  transfer_number  String   @unique @db.VarChar(50)
   origin_id        Int
   destination_id   Int
   transporter_id   Int
@@ -264,7 +265,7 @@ model Transfer {
   origin           Warehouse     @relation("TransferOrigin", fields: [origin_id], references: [id])
   destination      Warehouse     @relation("TransferDestination", fields: [destination_id], references: [id])
   transporter      Organization  @relation(fields: [transporter_id], references: [id])
-  created_by             User          @relation(fields: [created_by_id], references: [id])
+  created_by       User          @relation(fields: [created_by_id], references: [id])
   asset_transfers  AssetTransfer[]
 }
 
@@ -280,7 +281,7 @@ model AssetTransfer {
 
 model Arrival {
   id              Int      @id @default(autoincrement())
-  arrival_number  String   @unique @db.VarChar(15)
+  arrival_number  String   @unique @db.VarChar(50)
   origin_id       Int
   destination_id  Int
   transporter_id  Int
@@ -297,7 +298,7 @@ model Arrival {
 
 model Departure {
   id                     Int      @id @default(autoincrement())
-  departure_number       String   @unique @db.VarChar(15)
+  departure_number       String   @unique @db.VarChar(50)
   origin_id              Int
   destination_id         Int
   transporter_id         Int
@@ -316,7 +317,7 @@ model Departure {
 
 model Hold {
   id             Int      @id @default(autoincrement())
-  hold_number    String   @unique @db.VarChar(15)
+  hold_number    String   @unique @db.VarChar(50)
   created_by_id  Int
   created_for_id Int
   customer_id    Int
@@ -331,7 +332,7 @@ model Hold {
 
 model Invoice {
   id                Int      @id @default(autoincrement())
-  invoice_number    String   @db.VarChar(50)
+  invoice_number    String   @db.Text
   organization_id   Int
   updated_by_id     Int
   is_cleared        Boolean
@@ -345,9 +346,9 @@ model Invoice {
 }
 
 model Warehouse {
-  id         Int     @id @default(autoincrement())
-  city_code  String  @unique @db.VarChar(3)
-  street     String  @db.VarChar(50)
+  id         Int                    @id @default(autoincrement())
+  city_code  String                 @unique @db.Char(3)
+  street     String                 @db.Text
   assets     Asset[]
   origin_transfers Transfer[]       @relation("TransferOrigin")
   destination_transfers Transfer[]  @relation("TransferDestination")
@@ -358,7 +359,7 @@ model Warehouse {
 
 model Location {
   warehouse_id Int
-  location  String  @db.VarChar(25) 
+  location  String  @db.VarChar(50) 
   
   warehouse Warehouse @relation(fields: [warehouse_id], references: [id])
   assets    Asset[]
@@ -367,15 +368,14 @@ model Location {
 
 model Brand {
   id     Int     @id @default(autoincrement())
-  name   String  @unique @db.VarChar(45)
+  name   String  @unique @db.Text
   models Model[]
-  errorCategories ErrorCategory[]
-  assets Asset[]
+  errors Error[]
 }
 
 model Model {
   id          Int        @id @default(autoincrement())
-  name        String     @db.VarChar(50)
+  name        String     @db.Text
   asset_type  AssetType
   weight      Float
   size        Float
@@ -391,7 +391,7 @@ model File {
   id              Int      @id @default(autoincrement())
   asset_id        Int
   uploaded_by_id  Int
-  name            String   @db.VarChar(255)
+  name            String   @db.Text
   type            FileType
   data            Bytes
   url             String
@@ -416,9 +416,9 @@ model Comment {
 
 model User {
   id            Int      @id @default(autoincrement())
-  email         String   @unique @db.VarChar(150)
-  name          String   @unique @db.VarChar(150)
-  googleId      String?  @unique @db.VarChar(255)
+  email         String   @unique @db.Text
+  name          String   @unique @db.Text
+  googleId      String?  @unique @db.Text
   role          Role
 
   asset_errors_added AssetError[] @relation("ErrorAddedBy")
@@ -438,18 +438,18 @@ model User {
 
 model Organization {
   id                Int      @id @default(autoincrement())
-  account_number    String   @unique @db.VarChar(15)
-  name              String   @db.VarChar(45)
-  contact_name      String?  @db.VarChar(45)
-  phone             String?  @db.VarChar(15)
-  phone_ext         String?  @db.VarChar(10)
-  primary_email     String?  @db.VarChar(50)
-  secondary_email   String?  @db.VarChar(50)
-  address           String?  @db.VarChar(100)
-  city              String?  @db.VarChar(50)
-  province          String?  @db.VarChar(50)
-  country           String?  @db.VarChar(50)
-  website           String?  @db.VarChar(100)
+  account_number    String   @unique @db.VarChar(50)
+  name              String   @db.Text
+  contact_name      String?  @db.Text
+  phone             String?  @db.Text
+  phone_ext         String?  @db.Text
+  primary_email     String?  @db.Text
+  secondary_email   String?  @db.Text
+  address           String?  @db.Text
+  city              String?  @db.Text
+  province          String?  @db.Text
+  country           String?  @db.Text
+  website           String?  @db.Text
 
   invoices          Invoice[]
   arrivals_origin   Arrival[] @relation("ArrivalOrigin")
