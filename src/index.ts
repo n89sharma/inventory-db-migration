@@ -261,9 +261,13 @@ async function createManyEntities<TSource extends RowDataPacket, TTarget> (
     creator: (data: TTarget[]) => Promise<any>
 ) : Promise<number> {
 
+    console.log('Fetching source entities')
     const [results] = await con.query<TSource[]>(query)
+    console.log('mapping')
     const mappedEntities = Array.from(results).map(mapper) 
+    console.log('creating new entities')
     await creator(mappedEntities)
+    console.log('done')
     return mappedEntities.length
 }
 
@@ -275,7 +279,9 @@ async function main() {
     //await createManyEntities(brandQuery, brandMapper, brandCreator) //1
     //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
+    console.log('mapping warehouse')
     await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) //3
+    console.log('mapping location')
     await createEntities(locationQuery, locationMapper, locationCreator)        //4
     await createEntities(errorQuery, errorMapper, errorCreator)                 //5
     await createManyEntities(partQuery, partMapper, partCreator)                //6
