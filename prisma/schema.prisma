@@ -347,7 +347,7 @@ model Invoice {
 
 model Warehouse {
   id         Int                    @id @default(autoincrement())
-  city_code  String                 @unique @db.Char(3)
+  city_code  String                 @db.Char(3)
   street     String                 @db.Text
   assets     Asset[]
   origin_transfers Transfer[]       @relation("TransferOrigin")
@@ -355,6 +355,8 @@ model Warehouse {
   departures Departure[]            
   arrivals Arrival[]
   locations Location[]
+  
+  @@index([city_code])
 }
 
 model Location {

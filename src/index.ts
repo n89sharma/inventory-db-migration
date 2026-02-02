@@ -99,8 +99,8 @@ const errorQuery = `
         MAX(TRIM(e.name)) AS description,
         MAX(TRIM(c.category_name)) AS category
     FROM error e
-    JOIN brand b ON b.brand_id = c.Brand_id
     LEFT JOIN error_category c USING(error_category_id)
+    JOIN brand b ON b.brand_id = c.Brand_id
     GROUP BY 1,2;
 `
 
@@ -247,11 +247,15 @@ async function createEntities<TSource extends RowDataPacket, TTarget> (
     creator: (data: TTarget) => Promise<any>
 ) : Promise<number> {
 
+    console.log('Fetching source entities')
     const [results] = await con.query<TSource[]>(query)
+    console.log('mapping')
     const mappedEntities = Array.from(results).map(mapper) 
+    console.log('creating new entities')
     for (const entitity of mappedEntities) {
         await creator(entitity)
     }
+    console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
 
@@ -267,7 +271,7 @@ async function createManyEntities<TSource extends RowDataPacket, TTarget> (
     const mappedEntities = Array.from(results).map(mapper) 
     console.log('creating new entities')
     await creator(mappedEntities)
-    console.log('done')
+    console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
 
@@ -279,12 +283,15 @@ async function main() {
     //await createManyEntities(brandQuery, brandMapper, brandCreator) //1
     //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
-    console.log('mapping warehouse')
-    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) //3
-    console.log('mapping location')
-    await createEntities(locationQuery, locationMapper, locationCreator)        //4
+    //console.log('warehouse')
+    //await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) //3
+    //console.log('location')
+    //await createEntities(locationQuery, locationMapper, locationCreator)        //4
+    console.log('error')
     await createEntities(errorQuery, errorMapper, errorCreator)                 //5
+    console.log('part')
     await createManyEntities(partQuery, partMapper, partCreator)                //6
+    console.log('org')
     await createManyEntities(orgQuery, orgMapper, orgCreator)                   //7
 
     // // Phase 2: Create transactions
