@@ -443,6 +443,7 @@ model Organization {
   contact_name      String?  @db.Text
   phone             String?  @db.Text
   phone_ext         String?  @db.Text
+  mobile            String?  @db.Text
   primary_email     String?  @db.Text
   secondary_email   String?  @db.Text
   address           String?  @db.Text
@@ -459,7 +460,7 @@ model Organization {
   holds             Hold[]
   transfers         Transfer[]
 
-  @@index([name, contact_name, primary_email])
+  @@index([name])
 }
 
 model AssetHistory {

@@ -3,6 +3,93 @@ import mysql, { RowDataPacket } from 'mysql2/promise';
 import { AssetType } from '../generated/prisma/enums.js';
 
 //--------------------------------------------------------------------
+// (7) ORGANIZATION
+
+const orgQuery = `
+    SELECT
+        TRIM(account_number) AS account_number,
+        TRIM(full_name) AS full_name,
+        TRIM(contact_name) AS contact_name,
+        TRIM(phone) AS phone,
+        TRIM(phone_ext) AS phone_ext,
+        TRIM(mobile) AS mobile,
+        TRIM(email_primary) AS email_primary,
+        TRIM(email_secondary) AS email_secondary,
+        TRIM(address1) AS address1,
+        TRIM(city) AS city,
+        TRIM(province) AS province,
+        TRIM(country) AS country,
+        TRIM(website) AS website
+    FROM customer
+`
+
+interface OrganizationRow extends RowDataPacket {
+    account_number: string,
+    full_name: string,
+    contact_name: string,
+    phone: string,
+    phone_ext: string,
+    email_primary: string,
+    email_secondary: string,
+    address1: string,
+    city: string,
+    province: string,
+    country: string,
+    website: string
+}
+
+const orgMapper = (r: OrganizationRow) => ({
+    account_number: r.account_number,
+    name: r.full_name,
+    contact_name: r.contact_name,
+    phone: r.phone,
+    phone_ext: r.phone_ext,
+    primary_email: r.email_primary,
+    secondary_email: r.email_secondary,
+    address: r.address1,
+    city: r.city,
+    province: r.province,
+    country: r.country,
+    website: r.website
+})
+
+const orgCreator = (e: any) => prisma.organization.createMany({data: e})
+
+
+
+//--------------------------------------------------------------------
+// (6) PART
+
+const partQuery = `
+    SELECT
+        p.part_number AS part_number,
+        MAX(p.part_description) AS description,
+        MAX(p.dealer_price) AS dealer_price,
+        MAX(p.sale_price) AS sale_price,
+        MAX(p.cost_price) AS cost
+    FROM bulk_item p
+    GROUP BY 1
+`
+
+interface PartRow extends RowDataPacket {
+    description: string,
+    part_number: string,
+    dealer_price: string,
+    sale_price: string,
+    cost: string
+}
+
+const partMapper = (r: PartRow) => ({
+    description: r.description,
+    part_number: r.part_number,
+    dealer_price: parseFloat(r.sale_price).toFixed(2),
+    sale_price: parseFloat(r.sale_price).toFixed(2),
+    cost: parseFloat(r.cost).toFixed(2)
+})
+
+const partCreator = (e: any) => prisma.part.createMany({data: e})
+
+//--------------------------------------------------------------------
 // (5) ERROR
 
 const errorQuery = `
@@ -188,11 +275,11 @@ async function main() {
     //await createManyEntities(brandQuery, brandMapper, brandCreator) //1
     //await createEntities(modelQuery, modelMapper, modelCreator)     //2
     
-    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator)     //3
-    await createManyEntities(locationQuery, locationMapper, locationCreator)        //4
-    await createManyEntities(errorQuery, errorMapper, errorCreator)                 //5
-    // await createOrganizations()     // 6
-    // await createParts()             // 7
+    await createManyEntities(warehouseQuery, warehouseMapper, warehouseCreator) //3
+    await createEntities(locationQuery, locationMapper, locationCreator)        //4
+    await createEntities(errorQuery, errorMapper, errorCreator)                 //5
+    await createManyEntities(partQuery, partMapper, partCreator)                //6
+    await createManyEntities(orgQuery, orgMapper, orgCreator)                   //7
 
     // // Phase 2: Create transactions
     // await createArrivals()
