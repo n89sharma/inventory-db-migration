@@ -66,7 +66,9 @@ enum TechnicalStatus {
 
 enum Role {
   ADMIN
-  USER
+  MEMBER
+  INVENTORY
+  TECH
   FINANCE
   SALES
 }
@@ -201,7 +203,7 @@ model Error {
   id                  Int             @id @default(autoincrement())
   brand_id            Int
 
-  code                String          @db.Char(10)
+  code                String          @db.Char(15)
   description         String?
   category            String          @db.Text
 
@@ -283,16 +285,16 @@ model Arrival {
   id              Int      @id @default(autoincrement())
   arrival_number  String   @unique @db.VarChar(50)
   origin_id       Int
-  destination_id  Int
+  destination_id  Int?
   transporter_id  Int
-  created_by_id   Int
-  notes           String?
-  created_at      DateTime
+  created_by_id   Int?
+  notes           String?   @db.Text
+  created_at      DateTime  
 
-  origin          Organization @relation("ArrivalOrigin", fields: [origin_id], references: [id])
-  destination     Warehouse    @relation(fields: [destination_id], references: [id])
-  transporter     Organization @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
-  created_by      User         @relation(fields: [created_by_id], references: [id])
+  origin          Organization  @relation("ArrivalOrigin", fields: [origin_id], references: [id])
+  destination     Warehouse?    @relation(fields: [destination_id], references: [id])
+  transporter     Organization  @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
+  created_by      User?         @relation(fields: [created_by_id], references: [id])
   assets          Asset[]
 }
 
@@ -355,7 +357,8 @@ model Warehouse {
   departures Departure[]            
   arrivals Arrival[]
   locations Location[]
-  
+
+  @@unique([city_code, street])
   @@index([city_code])
 }
 
@@ -418,8 +421,9 @@ model Comment {
 
 model User {
   id            Int      @id @default(autoincrement())
-  email         String   @unique @db.Text
-  name          String   @unique @db.Text
+  username      String   @unique @db.Text
+  email         String   @db.Text
+  name          String   @db.Text
   googleId      String?  @unique @db.Text
   role          Role
 
