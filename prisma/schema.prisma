@@ -304,16 +304,16 @@ model Departure {
   origin_id              Int
   destination_id         Int
   transporter_id         Int
-  created_by_id                Int
-  sales_representative_id Int
+  created_by_id          Int?
+  sales_representative_id Int?
   notes                  String?
   created_at             DateTime
 
   origin                 Warehouse     @relation(fields: [origin_id], references: [id])
   destination            Organization  @relation(fields: [destination_id], references: [id])
   transporter            Organization  @relation("DepartureTransporter", fields: [transporter_id], references: [id])
-  created_by                   User          @relation(fields: [created_by_id], references: [id])
-  sales_representative   User          @relation("SalesRep", fields: [sales_representative_id], references: [id])
+  created_by             User?         @relation(fields: [created_by_id], references: [id])
+  sales_representative   User?         @relation("SalesRep", fields: [sales_representative_id], references: [id])
   assets                 Asset[]
 }
 
