@@ -10,6 +10,7 @@ import { createErrorEntities } from './core/error.js'
 import { createUserEntities } from './core/user.js'
 import { createArrivalEntities } from './transfers/arrival.js'
 import { createDepartureEntities } from './transfers/departure.js'
+import { createTransferEntities } from './transfers/transfers.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -54,7 +55,7 @@ async function main() {
     //await createDepartureEntities(prisma, con)      //10 - 34,977/ 35,089
 
     console.log('\ntransfers----------')
-    // await createTransfers()
+    await createTransferEntities(prisma, con)           //11 - 2,108/ 2,162
     // await createHolds()
     // await createInvoices()
 
