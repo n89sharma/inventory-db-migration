@@ -1,7 +1,6 @@
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getOrganizationMap } from '../core/organization.js'
-import { getWarehouseMap } from '../core/warehouse.js'
 import { getUserMap } from '../core/user.js'
 
 const holdQuery = `

@@ -12,6 +12,7 @@ import { createArrivalEntities } from './transfers/arrivals.js'
 import { createDepartureEntities } from './transfers/departures.js'
 import { createTransferEntities } from './transfers/transfers.js'
 import { createHoldEntities } from './transfers/holds.js'
+import { createInvoiceEntities } from './transfers/invoices.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -23,6 +24,7 @@ const con = await mysql.createConnection({
 
 async function main() {
 
+    //==================================================================
     //Phase 1: Create reference data
     console.log('\nbrands----------')
     //await createBrandEntities(prisma, con)          //1 - 86
@@ -48,7 +50,8 @@ async function main() {
     console.log('\nuser----------')
     //await createUserEntities(prisma, con)           //8 - 299
 
-    // // Phase 2: Create transactions
+    //==================================================================
+    // Phase 2: Create transactions
     console.log('\narrival----------')
     //await createArrivalEntities(prisma, con)        //9 - 34,899/ 34,901
 
@@ -56,19 +59,28 @@ async function main() {
     //await createDepartureEntities(prisma, con)      //10 - 34,977/ 35,089
 
     console.log('\ntransfers----------')
-    //await createTransferEntities(prisma, con)         //11 - 2,108/ 2,162
+    //await createTransferEntities(prisma, con)       //11 - 2,108/ 2,162
 
     console.log('\nhold----------')
-     await createHoldEntities(prisma, con)              //12 - 37,117/ 37,171
-    // await createInvoices()
+    //await createHoldEntities(prisma, con)             //12 - 37,117/ 37,171
 
-    // // Phase 3: Create assets (depends on everything above)
-    // await createAssets()
+    console.log('\ninvoice----------')
+    await createInvoiceEntities(prisma, con)            //13 - 40,551/ ?
+    
+    //==================================================================
+    // Phase 3: Create assets (depends on everything above)
+    // Asset
+    // Tech Specs
+    // Cost
+    // Comment
 
-    // // Phase 4: Create relationships
-    // await updateAccessoriesForAssets()
-    // await updateErrorsForAssets()
-    // await updateCommentsForAssets()
+    //==================================================================
+    // Phase 4: Create relationships
+    // AssetAccessory
+    // AssetError
+    // AssetHistory
+    // AssetPart
+    // AssetTransfer
 
     return 0
 }
