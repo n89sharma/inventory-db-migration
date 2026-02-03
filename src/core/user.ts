@@ -8,8 +8,8 @@ import { createManyEntities } from './createntities.js'
 const userQuery = `
     SELECT
         CASE 
-            WHEN TRIM(user_name) = '' THEN 'UNKOWN'
-            ELSE TRIM(user_name)
+            WHEN UPPER(TRIM(user_name)) = '' THEN 'ASUKHIJAC'
+            ELSE UPPER(TRIM(user_name))
         END AS username,
         MAX(TRIM(NAME)) AS name,
         MAX(TRIM(email)) AS email
@@ -40,7 +40,7 @@ export async function getUserMap(prisma: PrismaClient) {
   const users = await prisma.user.findMany()
   
   return users.reduce((map, user) => {
-    map[user.username] = user.id
+    map[user.username.toUpperCase()] = user.id
     return map
   }, {} as Record<string, number>)
 }

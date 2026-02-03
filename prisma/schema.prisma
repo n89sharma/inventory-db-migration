@@ -133,6 +133,7 @@ model Asset {
   cost                      Cost?
   technical_specification   TechnicalSpecification?
   created_at                DateTime
+  is_held                   Boolean
 
   model                     Model                    @relation(fields: [model_id], references: [id])
   warehouse                 Warehouse                @relation(fields: [warehouse_id], references: [id])
@@ -325,6 +326,8 @@ model Hold {
   customer_id    Int
   notes          String?
   created_at     DateTime
+  from_dt        DateTime?
+  to_dt          DateTime?
 
   created_by     User         @relation("HoldCreatedBy", fields: [created_by_id], references: [id])
   created_for    User         @relation("HoldCreatedFor", fields: [created_for_id], references: [id])

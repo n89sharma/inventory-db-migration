@@ -8,9 +8,10 @@ import { createPartEntities } from './core/part.js'
 import { createOrganizationEntities } from './core/organization.js'
 import { createErrorEntities } from './core/error.js'
 import { createUserEntities } from './core/user.js'
-import { createArrivalEntities } from './transfers/arrival.js'
-import { createDepartureEntities } from './transfers/departure.js'
+import { createArrivalEntities } from './transfers/arrivals.js'
+import { createDepartureEntities } from './transfers/departures.js'
 import { createTransferEntities } from './transfers/transfers.js'
+import { createHoldEntities } from './transfers/holds.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -55,8 +56,10 @@ async function main() {
     //await createDepartureEntities(prisma, con)      //10 - 34,977/ 35,089
 
     console.log('\ntransfers----------')
-    await createTransferEntities(prisma, con)           //11 - 2,108/ 2,162
-    // await createHolds()
+    //await createTransferEntities(prisma, con)         //11 - 2,108/ 2,162
+
+    console.log('\nhold----------')
+     await createHoldEntities(prisma, con)              //12 - 37,117/ 37,171
     // await createInvoices()
 
     // // Phase 3: Create assets (depends on everything above)
