@@ -152,6 +152,8 @@ model Asset {
   asset_history             AssetHistory[]
 
   @@index([serial_number])
+  @@index([warehouse_id])
+  @@index([model_id])
   @@index([model_id, warehouse_id])
   @@index([model_id, warehouse_id, exit_status, tracking_status])
   @@index([arrival_id])
@@ -159,6 +161,7 @@ model Asset {
   @@index([hold_id])
   @@index([purchase_invoice_id])
   @@index([sales_invoice_id])
+  @@index([created_at(sort: Desc)])
 }
 
 model TechnicalSpecification {
@@ -211,6 +214,7 @@ model Error {
   brand               Brand           @relation(fields: [brand_id], references: [id])
   asset_errors        AssetError[]
   
+  @@index([code])
   @@unique([brand_id, code])
 }
 
@@ -270,6 +274,11 @@ model Transfer {
   transporter      Organization  @relation(fields: [transporter_id], references: [id])
   created_by       User          @relation(fields: [created_by_id], references: [id])
   asset_transfers  AssetTransfer[]
+
+  @@index([created_at(sort: Desc)])
+  @@index([origin_id, destination_id])
+  @@index([destination_id])
+  @@index([transporter_id])
 }
 
 model AssetTransfer {
@@ -297,6 +306,12 @@ model Arrival {
   transporter     Organization  @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
   created_by      User?         @relation(fields: [created_by_id], references: [id])
   assets          Asset[]
+
+  @@index([destination_id, created_at(sort: Desc)])
+  @@index([created_at(sort: Desc)])
+  @@index([origin_id])
+  @@index([destination_id])
+  @@index([transporter_id])
 }
 
 model Departure {
@@ -316,6 +331,12 @@ model Departure {
   created_by             User?         @relation(fields: [created_by_id], references: [id])
   sales_representative   User?         @relation("SalesRep", fields: [sales_representative_id], references: [id])
   assets                 Asset[]
+
+  @@index([origin_id, created_at(sort: Desc)])
+  @@index([created_at(sort: Desc)])
+  @@index([origin_id])
+  @@index([destination_id])
+  @@index([transporter_id])
 }
 
 model Hold {
@@ -333,6 +354,13 @@ model Hold {
   created_for    User         @relation("HoldCreatedFor", fields: [created_for_id], references: [id])
   customer       Organization @relation(fields: [customer_id], references: [id])
   assets         Asset[]
+
+  @@index([created_at(sort: Desc)])
+  @@index([created_for_id, customer_id])
+  @@index([created_by_id])
+  @@index([customer_id])
+  @@index([from_dt])
+  @@index([to_dt])
 }
 
 model Invoice {
@@ -348,6 +376,11 @@ model Invoice {
   updated_by        User         @relation(fields: [updated_by_id], references: [id])
   purchase_assets   Asset[]      @relation("PurchaseInvoice")
   sales_assets      Asset[]      @relation("SalesInvoice")
+
+  @@index([created_at(sort: Desc)])
+  @@index([invoice_type, invoice_number])
+  @@index([invoice_number])
+  @@index([organization_id])
 }
 
 model Warehouse {
@@ -362,7 +395,6 @@ model Warehouse {
   locations Location[]
 
   @@unique([city_code, street])
-  @@index([city_code])
 }
 
 model Location {
@@ -392,7 +424,8 @@ model Model {
   brand_id    Int
   assets      Asset[]
 
-  @@unique([name, brand_id])
+  @@unique([brand_id, name])
+  @@index([name])
 }
 
 model File {
@@ -408,6 +441,10 @@ model File {
 
   asset           Asset     @relation(fields: [asset_id], references: [id])
   uploaded_by     User      @relation(fields: [uploaded_by_id], references: [id])
+
+  @@index([asset_id, uploaded_at(sort: Desc)])
+  @@index([uploaded_by_id])
+  @@index([name])
 }
 
 model Comment {
@@ -420,6 +457,9 @@ model Comment {
 
   asset       Asset     @relation(fields: [asset_id], references: [id])
   created_by  User      @relation(fields: [created_by_id], references: [id])
+  
+  @@index([asset_id, created_at(sort: Desc)])
+  @@index([created_by_id])
 }
 
 model User {
@@ -483,4 +523,6 @@ model AssetHistory {
 
   asset        Asset     @relation(fields: [asset_id], references: [id])
   user         User      @relation(fields: [user_id], references: [id])
+
+  @@index([asset_id, changed_on(sort: Desc)])
 }

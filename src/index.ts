@@ -69,7 +69,7 @@ async function main() {
     
     //==================================================================
     // Phase 3: Create assets (depends on everything above)
-    // Asset
+    // Asset                                            //14 - /450,133
     // Tech Specs
     // Cost
     // Comment
