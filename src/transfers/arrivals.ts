@@ -15,7 +15,7 @@ const arrivalQuery = `
         TRIM(w.name) AS street,
         TRIM(t.account_number) AS transporter,
         TRIM(a.notes) AS notes,
-        TRIM(u.user_name) AS username,
+        UPPER(TRIM(u.user_name)) AS username,
         TRIM(a.added_on) AS created_at
     FROM arrival a
     JOIN customer v ON a.vendor_id = v.customer_id
@@ -76,4 +76,13 @@ export async function createArrivalEntities(prisma: PrismaClient, con: Connectio
     
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
+}
+
+export async function getArrivalMap(prisma: PrismaClient) {
+  const entities = await prisma.arrival.findMany()
+  
+  return entities.reduce((map, e) => {
+    map[e.arrival_number] = e.id
+    return map
+  }, {} as Record<string, number>)
 }

@@ -79,3 +79,12 @@ export async function createHoldEntities(prisma: PrismaClient, con: Connection) 
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
+
+export async function getHoldMap(prisma: PrismaClient) {
+  const entities = await prisma.hold.findMany()
+  
+  return entities.reduce((map, e) => {
+    map[e.hold_number] = e.id
+    return map
+  }, {} as Record<string, number>)
+}

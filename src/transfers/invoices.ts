@@ -5,12 +5,12 @@ import { getUserMap } from '../core/user.js'
 
 const invoiceQuery = `
     SELECT 
-    UPPER(TRIM(a.external_invoice_number)) AS invoice_number,
-    TRIM(v.account_number) AS organization_id,
-    UPPER(TRIM(u.user_name)) AS updated_by,
-    a.is_cleared AS is_cleared,
-    TRIM(a.added_on) AS created_at,
-    'PURCHASE' AS invoice_type
+        UPPER(TRIM(a.external_invoice_number)) AS invoice_number,
+        TRIM(v.account_number) AS account_number,
+        MIN(UPPER(TRIM(u.user_name))) AS updated_by,
+        MIN(a.is_cleared) AS is_cleared,
+        MIN(TRIM(a.added_on)) AS created_at,
+        'PURCHASE' AS invoice_type
     FROM arrival a
     JOIN customer v ON v.customer_id = a.vendor_id
     JOIN user u ON u.user_id = a.added_by
@@ -21,45 +21,19 @@ const invoiceQuery = `
         'N.A.', 'N.A', 'RETURN FROM CUSTOMER', 'FREE MACHINE', 
         'FOUND IN WAREHOUSE', 'WAITING FOR INVOICE', 'CONSIGNMENT',
         'DFW-C', 'YYZ-C', 'YYZ - C', 'MISCELLANEOUS', 'RETURN TO VENDOR'
-        'RECONCILATION', 'FOR STORAGE ONLY', 'EXTRA', 
+        'RECONCILATION', 'FOR STORAGE ONLY', 'EXTRA', 'FINISHERS', 
         
         'SCRAP', 'DELETE', 'PARTS MACHINE', 'PARTS', 'FOR PARTS', 'RETURN TO VENDOR',
         'RENTAL', 'PARTS MACHINES', 'REFURBISHMENT', 'RETURNED', 'RENTAL',
         '666','777','999')
     AND a.vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653)
     AND a.added_on != '0000-00-00 00:00:00'
-
-    UNION ALL 
-
-    SELECT 
-        UPPER(TRIM(d.external_invoice_number)) AS invoice_number,
-        TRIM(c.account_number) AS organization_id,
-        UPPER(TRIM(u.user_name)) AS updated_by,
-        0 AS is_cleared,
-        TRIM(d.added_on) AS created_at,
-        'SALE' AS invoice_type
-    FROM departure d
-    JOIN customer c ON c.customer_id = d.customer_id
-    JOIN user u ON u.user_id = d.added_by
-    WHERE 
-        UPPER(TRIM(d.external_invoice_number)) NOT IN 
-            ('N/A', '', 'T:N/A', 'NA', 'NO INVOICE', 'RECONCILIATION', 
-            'RETURN', 'RETURN FROM VENDOR', 'NOT SHIVAS', 'RECONCILE', 
-            'N.A.', 'N.A', 'RETURN FROM CUSTOMER', 'FREE MACHINE', 
-            'FOUND IN WAREHOUSE', 'WAITING FOR INVOICE', 'CONSIGNMENT',
-            'DFW-C', 'YYZ-C', 'YYZ - C', 'MISCELLANEOUS', 'RETURN TO VENDOR'
-            'RECONCILATION', 'FOR STORAGE ONLY', 'EXTRA', 
-            
-            'SCRAP', 'DELETE', 'PARTS MACHINE', 'PARTS', 'FOR PARTS', 'RETURN TO VENDOR',
-            'RENTAL', 'PARTS MACHINES', 'REFURBISHMENT', 'RETURNED', 'RENTAL',
-            '666','777','999')
-        AND d.customer_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653)
-        AND d.added_on != '0000-00-00 00:00:00'
+    GROUP BY 1,2
 `
 
 interface InvoiceRow extends RowDataPacket {
     invoice_number: string,
-    organization_id: string,
+    account_number: string,
     updated_by: string,
     is_cleared: number,
     created_at: string,
@@ -73,7 +47,7 @@ function invoiceMapper (
 ) {
     return {
         invoice_number: r.invoice_number,
-        organization_id: orgMap[r.organization_id],
+        organization_id: orgMap[r.account_number],
         updated_by_id: userMap[r.updated_by],
         is_cleared: !!r.is_cleared,
         created_at: new Date(r.created_at),
@@ -106,5 +80,14 @@ export async function createInvoiceEntities(prisma: PrismaClient, con: Connectio
     
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
+}
+
+export async function getInvoiceMap(prisma: PrismaClient) {
+  const entities = await prisma.invoice.findMany()
+  
+  return entities.reduce((map, e) => {
+    map[`${e.organization_id}:${e.invoice_number}`] = e.id
+    return map
+  }, {} as Record<string, number>)
 }
 

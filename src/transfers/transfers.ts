@@ -13,11 +13,7 @@ const transferQuery = `
         TRIM(wd.name) AS destination_street,
         TRIM(c.account_number) AS transporter,
         TRIM(t.remarks) AS notes,
-        TRIM(u.user_name) AS created_by,
-        CASE
-            WHEN TRIM(u.user_name) ='wade' THEN 'Wade'
-            ELSE TRIM(u.user_name)
-        END AS created_by,
+        UPPER(TRIM(u.user_name)) AS created_by,
         TRIM(t.added_on) AS created_at,
         t.transfer_date
     FROM transfer t 

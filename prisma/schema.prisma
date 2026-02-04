@@ -41,14 +41,22 @@ enum AssetType {
 enum TrackingStatus {
   UNKNOWN
   MISSING
-  IN_TRANSIT
+
+  PURCHASED
+  INBOUND
+  RECEIVING
+  REPAIRING
   IN_STOCK
-  DEPARTED
+  PACKING
+  OUTBOUND
+  DELIVERED
 }
 
-enum ExitStatus {
+enum AvailabilityStatus {
   UNKNOWN
-  OWNED
+
+  AVAILABLE
+  HELD
   SOLD
   PARTS
   SCRAP
@@ -123,7 +131,7 @@ model Asset {
   asset_location            String?                  @db.VarChar(50)
   asset_type                AssetType
   tracking_status           TrackingStatus
-  exit_status               ExitStatus
+  availability_status       AvailabilityStatus
   technical_status          TechnicalStatus
   purchase_invoice_id       Int?
   sales_invoice_id          Int?
@@ -155,7 +163,7 @@ model Asset {
   @@index([warehouse_id])
   @@index([model_id])
   @@index([model_id, warehouse_id])
-  @@index([model_id, warehouse_id, exit_status, tracking_status])
+  @@index([model_id, warehouse_id, availability_status, tracking_status])
   @@index([arrival_id])
   @@index([departure_id])
   @@index([hold_id])
@@ -178,6 +186,7 @@ model TechnicalSpecification {
   drum_life_k        Int?
 
   asset              Asset   @relation(fields: [asset_id], references: [id])
+  @@index([meter_total])
 }
 
 model Cost {
@@ -377,10 +386,10 @@ model Invoice {
   purchase_assets   Asset[]      @relation("PurchaseInvoice")
   sales_assets      Asset[]      @relation("SalesInvoice")
 
+  @@unique([organization_id, invoice_number])
   @@index([created_at(sort: Desc)])
   @@index([invoice_type, invoice_number])
   @@index([invoice_number])
-  @@index([organization_id])
 }
 
 model Warehouse {

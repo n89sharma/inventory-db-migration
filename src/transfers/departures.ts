@@ -12,8 +12,8 @@ const departureQuery = `
         TRIM(w.name) AS street,
         TRIM(t.account_number) AS transporter,
         TRIM(d.notes) AS notes,
-        TRIM(u.user_name) AS username,
-        TRIM(s.user_name) AS salesperson,
+        UPPER(TRIM(u.user_name)) AS username,
+        UPPER(TRIM(s.user_name)) AS salesperson,
         TRIM(d.added_on) AS created_at
     FROM departure d
     JOIN customer c ON d.customer_id = c.customer_id
@@ -75,4 +75,13 @@ export async function createDepartureEntities(prisma: PrismaClient, con: Connect
     
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
+}
+
+export async function getDepartureMap(prisma: PrismaClient) {
+  const entities = await prisma.departure.findMany()
+  
+  return entities.reduce((map, e) => {
+    map[e.departure_number] = e.id
+    return map
+  }, {} as Record<string, number>)
 }

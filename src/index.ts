@@ -53,19 +53,19 @@ async function main() {
     //==================================================================
     // Phase 2: Create transactions
     console.log('\narrival----------')
-    //await createArrivalEntities(prisma, con)        //9 - 34,899/ 34,901
+    //await createArrivalEntities(prisma, con)    //9 - 34,906/ 34,901
 
     console.log('\ndeparture----------')
-    //await createDepartureEntities(prisma, con)      //10 - 34,977/ 35,089
+    //await createDepartureEntities(prisma, con)  //10 - 34,990/ 35,089
 
     console.log('\ntransfers----------')
-    //await createTransferEntities(prisma, con)       //11 - 2,108/ 2,162
+    //await createTransferEntities(prisma, con)   //11 - 2,108/ 2,162
 
     console.log('\nhold----------')
-    //await createHoldEntities(prisma, con)             //12 - 37,117/ 37,171
+    //await createHoldEntities(prisma, con)       //12 - 37,161/ 37,171
 
     console.log('\ninvoice----------')
-    await createInvoiceEntities(prisma, con)            //13 - 40,551/ ?
+    //await createInvoiceEntities(prisma, con)    //13 - 37,357/ 40,551
     
     //==================================================================
     // Phase 3: Create assets (depends on everything above)

@@ -56,3 +56,12 @@ export async function createModelEntities(prisma: PrismaClient, con: Connection)
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
+
+export async function getModelMap(prisma: PrismaClient) {
+  const entities = await prisma.model.findMany()
+  
+  return entities.reduce((map, e) => {
+    map[`${e.brand_id}:${e.name}`] = e.id
+    return map
+  }, {} as Record<string, number>)
+}
