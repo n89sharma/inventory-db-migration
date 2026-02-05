@@ -115,7 +115,7 @@ function assetMapper(
 
 const assetCreator = (prisma: PrismaClient, e: any) => prisma.asset.createMany({data: e})
 
-export async function createAssetEntitiesBatch(
+async function createAssetEntitiesBatch(
     prisma: PrismaClient, 
     con: Connection, 
     floor: number, 
@@ -162,6 +162,15 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
         let ceiling = i + step
         await createAssetEntitiesBatch(prisma, con, floor, ceiling)
     }
+}
+
+export async function getAssetMap(prisma: PrismaClient) {
+    const entities = await prisma.asset.findMany()
+  
+    return entities.reduce((map, e) => {
+    map[e.barcode] = e.id
+    return map
+    }, {} as Record<string, number>)
 }
 
 

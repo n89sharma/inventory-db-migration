@@ -14,6 +14,8 @@ import { createTransferEntities } from './transfers/transfers.js'
 import { createHoldEntities } from './transfers/holds.js'
 import { createInvoiceEntities } from './transfers/invoices.js'
 import { createAssetEntities } from './assets/asset.js'
+import { createTechSpecEntities } from './assets/techspecs.js'
+import { createCostEntities } from './assets/cost.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -71,10 +73,14 @@ async function main() {
     //==================================================================
     // Phase 3: Create assets (depends on everything above)                           
     //console.log('\nasset----------')
-    //await createAssetEntities(prisma, con)      //14 - /450,133
+    //await createAssetEntities(prisma, con)      //14 - 450,219/450,227
 
-    // Tech Specs
-    // Cost
+    //console.log('\ntech spec----------')
+    //await createTechSpecEntities(prisma, con)
+    
+    //console.log('\ncost----------')
+    //await createCostEntities(prisma, con)
+    
     // Comment
 
     //==================================================================
@@ -97,5 +103,6 @@ main()
     .catch(async (e) => {
         console.error(e)
         await prisma.$disconnect()
+        await con.end()
         process.exit(1)
     })
