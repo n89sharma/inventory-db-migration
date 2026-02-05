@@ -16,6 +16,7 @@ import { createInvoiceEntities } from './transfers/invoices.js'
 import { createAssetEntities } from './assets/asset.js'
 import { createTechSpecEntities } from './assets/techspecs.js'
 import { createCostEntities } from './assets/cost.js'
+import { createCommentEntities } from './assets/comment.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -80,8 +81,10 @@ async function main() {
     
     //console.log('\ncost----------')
     //await createCostEntities(prisma, con)
-    
+
     // Comment
+    console.log('\ncomment----------')
+    await createCommentEntities(prisma, con)
 
     //==================================================================
     // Phase 4: Create relationships

@@ -1,25 +1,6 @@
 import { RowDataPacket , Connection } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
 
-export async function createEntities<TSource extends RowDataPacket, TTarget> (
-    con: Connection,
-    query: string,
-    mapper: (r: TSource) => (TTarget),
-    creator: (data: TTarget) => Promise<any>
-) : Promise<number> {
-
-    console.log('fetching source entities')
-    const [results] = await con.query<TSource[]>(query)
-    console.log('mapping')
-    const mappedEntities = Array.from(results).map(mapper) 
-    console.log('creating new entities')
-    for (const entitity of mappedEntities) {
-        await creator(entitity)
-    }
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
-}
-
 export async function createManyEntities<TSource extends RowDataPacket, TTarget> (
     prisma: PrismaClient,
     con: Connection,

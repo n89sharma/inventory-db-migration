@@ -1,7 +1,7 @@
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket } from 'mysql2/promise'
 import { Connection } from 'mysql2/promise'
-import { createManyEntities } from './createntities.js'
+import { createManyEntities } from './utils.js'
 
 //--------------------------------------------------------------------
 // (1) BRANDS
