@@ -13,6 +13,7 @@ import { createDepartureEntities } from './transfers/departures.js'
 import { createTransferEntities } from './transfers/transfers.js'
 import { createHoldEntities } from './transfers/holds.js'
 import { createInvoiceEntities } from './transfers/invoices.js'
+import { createAssetEntities } from './assets/asset.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -26,50 +27,52 @@ async function main() {
 
     //==================================================================
     //Phase 1: Create reference data
-    console.log('\nbrands----------')
+    //console.log('\nbrands----------')
     //await createBrandEntities(prisma, con)          //1 - 86
 
-    console.log('\nmodels----------')
+    //console.log('\nmodels----------')
     //await createModelEntities(prisma, con)          //2 - 7,509
     
-    console.log('\nwarehouse----------')
+    //console.log('\nwarehouse----------')
     //await createWarehouseEntities(prisma, con)      //3 - 12
     
-    console.log('\nlocation----------')
+    //console.log('\nlocation----------')
     //await createLocationEntities(prisma, con)       //4 - 4,068
     
-    console.log('\npart----------')
+    //console.log('\npart----------')
     //await createPartEntities(prisma, con)           //5 - 1225
     
-    console.log('\norg----------')
+    //console.log('\norg----------')
     //await createOrganizationEntities(prisma, con)   //6 - 2,832
     
-    console.log('\nerror----------')
+    //console.log('\nerror----------')
     //await createErrorEntities(prisma, con)          //7 - 705
     
-    console.log('\nuser----------')
+    //console.log('\nuser----------')
     //await createUserEntities(prisma, con)           //8 - 299
 
     //==================================================================
     // Phase 2: Create transactions
-    console.log('\narrival----------')
+    //console.log('\narrival----------')
     //await createArrivalEntities(prisma, con)    //9 - 34,906/ 34,901
 
-    console.log('\ndeparture----------')
+    //console.log('\ndeparture----------')
     //await createDepartureEntities(prisma, con)  //10 - 34,990/ 35,089
 
-    console.log('\ntransfers----------')
+    //console.log('\ntransfers----------')
     //await createTransferEntities(prisma, con)   //11 - 2,108/ 2,162
 
-    console.log('\nhold----------')
+    //console.log('\nhold----------')
     //await createHoldEntities(prisma, con)       //12 - 37,161/ 37,171
 
-    console.log('\ninvoice----------')
+    //console.log('\ninvoice----------')
     //await createInvoiceEntities(prisma, con)    //13 - 37,357/ 40,551
     
     //==================================================================
-    // Phase 3: Create assets (depends on everything above)
-    // Asset                                            //14 - /450,133
+    // Phase 3: Create assets (depends on everything above)                           
+    //console.log('\nasset----------')
+    //await createAssetEntities(prisma, con)      //14 - /450,133
+
     // Tech Specs
     // Cost
     // Comment

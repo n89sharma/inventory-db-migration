@@ -127,7 +127,7 @@ model Asset {
   barcode                   String                   @unique @db.VarChar(50)
   serial_number             String                   @db.VarChar(50)
   model_id                  Int
-  warehouse_id              Int
+  warehouse_id              Int?
   asset_location            String?                  @db.VarChar(50)
   asset_type                AssetType
   tracking_status           TrackingStatus
@@ -144,7 +144,7 @@ model Asset {
   is_held                   Boolean
 
   model                     Model                    @relation(fields: [model_id], references: [id])
-  warehouse                 Warehouse                @relation(fields: [warehouse_id], references: [id])
+  warehouse                 Warehouse?               @relation(fields: [warehouse_id], references: [id])
   location                  Location?                @relation(fields: [warehouse_id, asset_location], references: [warehouse_id, location])
   purchase_invoice          Invoice?                 @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
   sales_invoice             Invoice?                 @relation("SalesInvoice", fields: [sales_invoice_id], references: [id])

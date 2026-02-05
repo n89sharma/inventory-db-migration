@@ -15,15 +15,15 @@ export const assetTypeMap: Record<string, AssetType> = {
 
 //--------------------------------------------------------------------
 // TECHNICAL STATUS
-export const technicalStatusMap: Record<string, TechnicalStatus> ={
+export const technicalStatusMap: Record<string, TechnicalStatus> = {
     'Not Tested': TechnicalStatus.NOT_TESTED,
+    'OK': TechnicalStatus.OK,
     'Error': TechnicalStatus.ERROR,
     'Prepared': TechnicalStatus.PREPARED,
-    'Pending': TechnicalStatus.PENDING,
-    'Ok': TechnicalStatus.OK
+    'Pending': TechnicalStatus.PENDING
 }
 
-export const trackingStatusMap: Record<string, string> = {
+export const trackingStatusMap: Record<string, TrackingStatus> = {
     'Unknown':      TrackingStatus.UNKNOWN,
     'In Transit':   TrackingStatus.INBOUND,
     'Stock':        TrackingStatus.IN_STOCK,
@@ -43,7 +43,7 @@ export const trackingStatusMap: Record<string, string> = {
     'Lease':        TrackingStatus.DELIVERED
 }
 
-export const availabilityStatusMap: Record<string, string> = {
+export const availabilityStatusMap: Record<string, AvailabilityStatus> = {
     'Unknown':      AvailabilityStatus.UNKNOWN,
     'In Transit':   AvailabilityStatus.AVAILABLE,
     'Stock':        AvailabilityStatus.AVAILABLE,
