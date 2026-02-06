@@ -1,4 +1,4 @@
-import { AssetType, AvailabilityStatus, TechnicalStatus, TrackingStatus } from '../../generated/prisma/enums.js'
+import { Accessory, AssetType, AvailabilityStatus, TechnicalStatus, TrackingStatus } from '../../generated/prisma/enums.js'
 
 //--------------------------------------------------------------------
 // ASSET TYPES
@@ -61,4 +61,19 @@ export const availabilityStatusMap: Record<string, AvailabilityStatus> = {
     'Return To Vendor':         AvailabilityStatus.RETURNED,
     'Return To Remarketing':    AvailabilityStatus.RETURNED,  
     'Lease':        AvailabilityStatus.LEASED
+}
+
+export const accessoryMap: Record<string, Accessory> = {
+    'NIC': Accessory.NIC,
+    'PS': Accessory.PS,
+    'PCL': Accessory.PCL,
+    'UFR': Accessory.UFR,
+    'FAX': Accessory.FAX,
+    'USEND': Accessory.USEND,
+    'DF': Accessory.DF,
+    'CASS': Accessory.CASS,
+    'FIN': Accessory.FIN,
+    'BF': Accessory.BF,
+    'HDD': Accessory.HDD,
+    'SCAN': Accessory.SCAN
 }

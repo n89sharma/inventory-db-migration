@@ -2,7 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { AssetType } from '../../generated/prisma/enums.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getBrandMap } from './brand.js'
-import { assetTypeMap } from './enummaps.js'
+import { assetTypeMap } from '../utils/enummaps.js'
 
 const modelQuery = `
     SELECT

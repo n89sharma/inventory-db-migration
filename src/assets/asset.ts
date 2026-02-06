@@ -6,7 +6,7 @@ import { getInvoiceMap } from '../transfers/invoices.js'
 import { getArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
-import { assetTypeMap, availabilityStatusMap, technicalStatusMap, trackingStatusMap } from '../core/enummaps.js'
+import { assetTypeMap, availabilityStatusMap, technicalStatusMap, trackingStatusMap } from '../utils/enummaps.js'
 import { getBrandMap } from '../core/brand.js'
 
 const assetQuery = (floor: number, ceiling: number) => `

@@ -1,6 +1,6 @@
 import { PrismaClient, Role } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
-import { createManyEntities } from './utils.js'
+import { createManyEntities } from '../utils/utils.js'
 
 //--------------------------------------------------------------------
 // (8) USER
@@ -8,7 +8,8 @@ import { createManyEntities } from './utils.js'
 const userQuery = `
     SELECT
         CASE 
-            WHEN UPPER(TRIM(user_name)) = '' THEN 'ASUKHIJAC'
+            WHEN UPPER(TRIM(user_id)) = 10097 THEN 'ASUKHIJAC'
+            WHEN UPPER(TRIM(user_name)) = '' THEN 'UNKNOWN'
             ELSE UPPER(TRIM(user_name))
         END AS username,
         MAX(TRIM(NAME)) AS name,

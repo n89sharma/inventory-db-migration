@@ -17,6 +17,8 @@ import { createAssetEntities } from './assets/asset.js'
 import { createTechSpecEntities } from './assets/techspecs.js'
 import { createCostEntities } from './assets/cost.js'
 import { createCommentEntities } from './assets/comment.js'
+import { getAssetDiff, getCommentDiff, getUserDiff } from './utils/diff.js'
+import { createAccessories } from './relationships/accessories.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -52,6 +54,12 @@ async function main() {
     //await createErrorEntities(prisma, con)          //7 - 705
     
     //console.log('\nuser----------')
+    //adip's copier earth account manually mapped to the empty username
+    //hold has a better logic as it looks for id 10097
+    //it was later found that there are other users with empty username
+    //id 100,81. However, since user query expects a unique username, 
+    //these account were getting squashed anyways. these users have 5
+    //assets in 2014
     //await createUserEntities(prisma, con)           //8 - 299
 
     //==================================================================
@@ -69,6 +77,8 @@ async function main() {
     //await createHoldEntities(prisma, con)       //12 - 37,161/ 37,171
 
     //console.log('\ninvoice----------')
+    //sales invoices have not been added as certain entries conflict
+    //with purchase invoice
     //await createInvoiceEntities(prisma, con)    //13 - 37,357/ 40,551
     
     //==================================================================
@@ -83,12 +93,15 @@ async function main() {
     //await createCostEntities(prisma, con)
 
     // Comment
-    console.log('\ncomment----------')
-    await createCommentEntities(prisma, con)
+    //console.log('\ncomment----------')
+    //88 assets were added within feb5-7, 3 are from 2024. rest exist
+    //await createCommentEntities(prisma, con)  //15 - 380,295/ 380,395
+    //await getCommentDiff(prisma, con)
 
     //==================================================================
     // Phase 4: Create relationships
     // AssetAccessory
+    await createAccessories(prisma, con)
     // AssetError
     // AssetHistory
     // AssetPart

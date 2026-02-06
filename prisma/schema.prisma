@@ -25,6 +25,8 @@ enum Accessory {
   CASS
   FIN
   BF
+  HDD
+  SCAN
 }
 
 enum AssetType {
