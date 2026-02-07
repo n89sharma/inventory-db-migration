@@ -218,7 +218,7 @@ model Error {
   id                  Int             @id @default(autoincrement())
   brand_id            Int
 
-  code                String          @db.Char(15)
+  code                String          @db.VarChar(15)
   description         String?
   category            String          @db.Text
 
@@ -233,14 +233,14 @@ model AssetError {
   asset_id     Int
   error_id     Int
   is_fixed     Boolean
-  added_by     Int
-  added_at     DateTime
+  added_by     Int?
+  added_at     DateTime?
   fixed_by     Int?
   fixed_at     DateTime?
 
   asset        Asset      @relation(fields: [asset_id], references: [id])
   error        Error      @relation(fields: [error_id], references: [id])
-  addedBy      User       @relation("ErrorAddedBy", fields: [added_by], references: [id])
+  addedBy      User?       @relation("ErrorAddedBy", fields: [added_by], references: [id])
   fixedBy      User?      @relation("ErrorFixedBy", fields: [fixed_by], references: [id])
 
   @@id([asset_id, error_id])

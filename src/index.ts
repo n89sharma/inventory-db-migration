@@ -18,7 +18,7 @@ import { createTechSpecEntities } from './assets/techspecs.js'
 import { createCostEntities } from './assets/cost.js'
 import { createCommentEntities } from './assets/comment.js'
 import { getAssetDiff, getCommentDiff, getUserDiff } from './utils/diff.js'
-import { createAccessories } from './relationships/accessories.js'
+import { createAssetErrorEntities } from './relationships/errors.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -51,7 +51,7 @@ async function main() {
     //await createOrganizationEntities(prisma, con)   //6 - 2,832
     
     //console.log('\nerror----------')
-    //await createErrorEntities(prisma, con)          //7 - 705
+    //await createErrorEntities(prisma, con)          //7 - 705/739
     
     //console.log('\nuser----------')
     //adip's copier earth account manually mapped to the empty username
@@ -101,8 +101,11 @@ async function main() {
     //==================================================================
     // Phase 4: Create relationships
     // AssetAccessory
-    await createAccessories(prisma, con)
-    // AssetError
+    // await createAssetAccessories(prisma, con)
+
+    // AssetError                               //16 27,849/ 27,883
+    //await createAssetErrorEntities(prisma, con)
+
     // AssetHistory
     // AssetPart
     // AssetTransfer

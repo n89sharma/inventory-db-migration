@@ -54,3 +54,12 @@ export async function createErrorEntities(prisma: PrismaClient, con: Connection)
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
+
+export async function getErrorMap(prisma: PrismaClient) {
+  const rows = await prisma.error.findMany()
+  
+  return rows.reduce((map, r) => {
+    map[`${r.brand_id}:${r.code}`] = r.id
+    return map
+  }, {} as Record<string, number>)
+}

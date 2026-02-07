@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Error" ALTER COLUMN "code" SET DATA TYPE VARCHAR(15);

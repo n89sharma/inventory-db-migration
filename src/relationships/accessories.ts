@@ -53,7 +53,7 @@ async function createAccessoriesBatch(
     return mappedEntities.length
 }
 
-export async function createAccessories(prisma: PrismaClient, con: Connection){
+export async function createAssetAccessories(prisma: PrismaClient, con: Connection){
 
     const start = 0
     const step = 50000
