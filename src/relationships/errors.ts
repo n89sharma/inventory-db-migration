@@ -72,10 +72,6 @@ export async function createAssetErrorEntities(prisma: PrismaClient, con: Connec
         return errorMapper(r, assetMap, userMap, errorMap, brandMap)
     }).filter((r) => !!r.asset_id)
 
-    for(const e of mappedEntities) {
-
-    }
-
     console.log('creating new entities')
     await errorCreator(prisma, mappedEntities)
     

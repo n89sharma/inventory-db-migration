@@ -72,7 +72,7 @@ async function createAssetEntitiesBatch(
 export async function createCommentEntities(prisma: PrismaClient, con: Connection){
 
     const start = 0
-    const step = 20000
+    const step = 50000
     const assetMap = await getAssetMap(prisma)
     const userMap = await getUserMap(prisma)
 

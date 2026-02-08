@@ -27,6 +27,10 @@ const arrivalQuery = `
         AND a.added_on != '0000-00-00 00:00:00'
 `
 
+const originalArrivalsQuery = `
+    CALL getHistoricArrivals()
+`
+
 interface ArrivalRow extends RowDataPacket {
     arrival_number: string,
     vendor: string,
@@ -36,6 +40,11 @@ interface ArrivalRow extends RowDataPacket {
     notes: string,
     username: string,
     created_at: string
+}
+
+interface OriginalArrivalRow extends RowDataPacket {
+    barcode: string,
+    arrival_number: string
 }
 
 function arrivalMapper (
@@ -79,10 +88,22 @@ export async function createArrivalEntities(prisma: PrismaClient, con: Connectio
 }
 
 export async function getArrivalMap(prisma: PrismaClient) {
-  const entities = await prisma.arrival.findMany()
+    const entities = await prisma.arrival.findMany()
   
-  return entities.reduce((map, e) => {
-    map[e.arrival_number] = e.id
-    return map
-  }, {} as Record<string, number>)
+    return entities.reduce((map, e) => {
+        map[e.arrival_number] = e.id
+        return map
+    }, {} as Record<string, number>)
+}
+
+export async function getOriginalArrivalMap(con: Connection) {
+    
+    console.log('fetching source entities')
+    const [results, metadata1] = await con.query<OriginalArrivalRow[]>(originalArrivalsQuery)    
+    const [rows, metadata2] = results
+
+    return rows.reduce((map: any, e: OriginalArrivalRow) => {
+        map[e.barcode] = e.arrival_number
+        return map
+    }, {} as Record<string, string>)
 }

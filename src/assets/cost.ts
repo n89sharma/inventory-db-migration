@@ -60,14 +60,13 @@ async function createCostEntitiesBatch(
     prisma: PrismaClient, 
     con: Connection, 
     floor: number, 
-    ceiling: number) {
+    ceiling: number,
+    assetMap: Record<string, number>) {
 
     console.log(`fetching source entities. ${floor} - ${ceiling}`)
     const [results] = await con.query<CostRow[]>(costQuery(floor, ceiling))
     
     console.log('mapping')
-    const assetMap = await getAssetMap(prisma)
-
     const mappedEntities = Array.from(results).map((r) => {
         return costMapper(r, assetMap)
     }).filter((r) => !!r.asset_id)
@@ -82,11 +81,12 @@ async function createCostEntitiesBatch(
 
 export async function createCostEntities(prisma: PrismaClient, con: Connection) {
 
+    const assetMap = await getAssetMap(prisma)
     const start = 0
-    const step = 20000
+    const step = 50000
     for(let i=start; i<500000; i=i+step) {
         let floor = i + 1
         let ceiling = i + step
-        await createCostEntitiesBatch(prisma, con, floor, ceiling)
+        await createCostEntitiesBatch(prisma, con, floor, ceiling, assetMap)
     }
 }

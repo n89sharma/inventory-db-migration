@@ -62,14 +62,13 @@ async function createTechSpecificationEntitiesBatch(
     prisma: PrismaClient, 
     con: Connection, 
     floor: number, 
-    ceiling: number) {
+    ceiling: number,
+    assetMap: Record<string, number>) {
 
     console.log(`fetching source entities. ${floor} - ${ceiling}`)
     const [results] = await con.query<TechSpecRow[]>(techSpecQuery(floor, ceiling))
     
     console.log('mapping')
-    const assetMap = await getAssetMap(prisma)
-
     const mappedEntities = Array.from(results).map((r) => {
         return techSpecMapper(r, assetMap)
     }).filter((r) => !!r.asset_id)
@@ -84,11 +83,13 @@ async function createTechSpecificationEntitiesBatch(
 
 export async function createTechSpecEntities(prisma: PrismaClient, con: Connection) {
 
+    const assetMap = await getAssetMap(prisma)
+
     const start = 0
-    const step = 20000
+    const step = 50000
     for(let i=start; i<=500000; i=i+step) {
         let floor = i + 1
         let ceiling = i + step
-        await createTechSpecificationEntitiesBatch(prisma, con, floor, ceiling)
+        await createTechSpecificationEntitiesBatch(prisma, con, floor, ceiling, assetMap)
     }
 }

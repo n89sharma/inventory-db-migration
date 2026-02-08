@@ -3,7 +3,7 @@ import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getModelMap } from '../core/model.js'
 import { getInvoiceMap } from '../transfers/invoices.js'
-import { getArrivalMap } from '../transfers/arrivals.js'
+import { getArrivalMap, getOriginalArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
 import { assetTypeMap, availabilityStatusMap, technicalStatusMap, trackingStatusMap } from '../utils/enummaps.js'
@@ -89,7 +89,8 @@ function assetMapper(
     invoiceMap: Record<string, number>,
     arrivalMap: Record<string, number>,
     departureMap: Record<string, number>,
-    holdMap: Record<string, number>
+    holdMap: Record<string, number>,
+    originalArrivalMap: Record<string, string>
 ) {
 
     return {
@@ -104,7 +105,7 @@ function assetMapper(
         technical_status: technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : TechnicalStatus.NOT_TESTED,
         purchase_invoice_id: invoiceMap[`${r.arrival_vendor_account_number}:${r.purchase_invoice_number}`],
         sales_invoice_id: null,
-        arrival_id:  arrivalMap[r.arrival_number],
+        arrival_id:  arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
         departure_id: departureMap[r.departure_number],
         hold_id: holdMap[r.hold_number],
         created_at: new Date(r.created_at),
@@ -119,20 +120,21 @@ async function createAssetEntitiesBatch(
     prisma: PrismaClient, 
     con: Connection, 
     floor: number, 
-    ceiling: number) {
+    ceiling: number,
+    brandMap: Record<string, number>,
+    modelMap: Record<string, number>,
+    warehouseMap: Record<string, number>,
+    invoiceMap: Record<string, number>,
+    arrivalMap: Record<string, number>,
+    departureMap: Record<string, number>,
+    holdMap: Record<string, number>,
+    originalArrivalMap: Record<string, string>) {
 
     console.log(`fetching source entities. ${floor} - ${ceiling}`)
     const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
     
     console.log('mapping')
-    const brandMap = await getBrandMap(prisma)
-    const modelMap = await getModelMap(prisma)
-    const warehouseMap = await getWarehouseMap(prisma)
-    const invoiceMap = await getInvoiceMap(prisma)
-    const arrivalMap = await getArrivalMap(prisma)
-    const departureMap = await getDepartureMap(prisma)
-    const holdMap = await getHoldMap(prisma)
-
+    
     const mappedEntities = Array.from(results).map((r) => {
         return assetMapper(
             r,
@@ -142,7 +144,8 @@ async function createAssetEntitiesBatch(
             invoiceMap,
             arrivalMap,
             departureMap,
-            holdMap
+            holdMap,
+            originalArrivalMap
         )
     }) 
 
@@ -155,12 +158,34 @@ async function createAssetEntitiesBatch(
 
 export async function createAssetEntities(prisma: PrismaClient, con: Connection){
 
+    const brandMap = await getBrandMap(prisma)
+    const modelMap = await getModelMap(prisma)
+    const warehouseMap = await getWarehouseMap(prisma)
+    const invoiceMap = await getInvoiceMap(prisma)
+    const arrivalMap = await getArrivalMap(prisma)
+    const departureMap = await getDepartureMap(prisma)
+    const holdMap = await getHoldMap(prisma)
+    const originalArrivalMap = await getOriginalArrivalMap(con)
+
     const start = 0
-    const step = 20000
+    const step = 50000
     for(let i=start; i<=500000; i=i+step) {
         let floor = i + 1
         let ceiling = i + step
-        await createAssetEntitiesBatch(prisma, con, floor, ceiling)
+        await createAssetEntitiesBatch(
+            prisma, 
+            con,
+            floor, 
+            ceiling,
+            brandMap,
+            modelMap,
+            warehouseMap,
+            invoiceMap,
+            arrivalMap,
+            departureMap,
+            holdMap,
+            originalArrivalMap
+        )
     }
 }
 

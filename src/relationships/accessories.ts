@@ -56,7 +56,7 @@ async function createAccessoriesBatch(
 export async function createAssetAccessories(prisma: PrismaClient, con: Connection){
 
     const start = 0
-    const step = 50000
+    const step = 100000
     const assetMap = await getAssetMap(prisma)
 
     for(let i=start; i<1577279; i=i+step) {

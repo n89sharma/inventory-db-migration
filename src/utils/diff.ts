@@ -15,6 +15,10 @@ interface MissingBarcodes extends RowDataPacket {
     added_on:string
 }
 
+interface Arrival extends RowDataPacket {
+    arrival_number: string
+}
+
 export async function getAssetDiff(prisma: PrismaClient, con: Connection) {
 
     const diff: Set<string> = await getDiff(
@@ -62,6 +66,31 @@ export async function getUserDiff(prisma: PrismaClient, con: Connection) {
     console.log(Array.from(diff))
 }
 
+export async function getArrivalDiff(prisma: PrismaClient, con: Connection) {
+    const diff: Set<string> = await getDiff(
+        prisma,
+        con,
+        `SELECT TRIM(transaction_number) as arrival_number FROM arrival`,
+        `select TRIM(arrival_number) as arrival_number FROM "Arrival"`,
+        (a: Arrival) => a.arrival_number
+    )
+    const missingArrivalNumbers = Array.from(diff)
+    const missingArrivalQuery = `
+        SELECT
+            TRIM(a.transaction_number) AS arrival_number,
+            TRIM(a.added_on) AS created_at
+        FROM arrival a
+        WHERE 
+            vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653)
+            AND a.transaction_number IN (?)
+            AND a.added_on != '0000-00-00 00:00:00'
+    `
+    const [missingArrivals] = await con.query<any[]>(
+        missingArrivalQuery, 
+        missingArrivalNumbers)
+    console.log(missingArrivals)
+}
+
 async function getDiff<Q extends RowDataPacket>(
     prisma: PrismaClient,
     con: Connection,
@@ -90,10 +119,13 @@ async function printOldBarcodes(
             barcode, 
             added_on 
         FROM inventory
-        WHERE barcode IN (?)`
+        WHERE barcode IN (?)
+        ORDER BY added_on DESC`
 
     let [missingData] = await con.query<MissingBarcodes[]>(missingAssetQuery, [diffArray])
 
     console.log(`total diff: ${diff.size}`)
-    console.log(missingData)
+    for(const e of missingData) {
+        console.log(`${e.barcode}: ${e.added_on}`)
+    }
 }
