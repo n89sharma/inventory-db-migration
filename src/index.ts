@@ -29,7 +29,7 @@ const con = await mysql.createConnection({
     port: parseInt(process.env.DB_PORT!)
 })
 
-async function alreadyExecuted() {
+async function fullRun() {
     //==================================================================
     //Phase 1: Create reference data
     console.log('\nbrands----------')
@@ -107,6 +107,7 @@ async function alreadyExecuted() {
 
 async function main() {
 
+    await fullRun()
 
     // AssetHistory
     // AssetPart

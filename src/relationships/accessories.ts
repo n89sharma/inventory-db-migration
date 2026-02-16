@@ -59,7 +59,7 @@ export async function createAssetAccessories(prisma: PrismaClient, con: Connecti
     const step = 100000
     const assetMap = await getAssetMap(prisma)
 
-    for(let i=start; i<1577279; i=i+step) {
+    for(let i=start; i<1700000; i=i+step) {
         let floor = i + 1
         let ceiling = i + step
         await createAccessoriesBatch(prisma, con, floor, ceiling, assetMap)

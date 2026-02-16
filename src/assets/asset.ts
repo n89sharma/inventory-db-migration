@@ -8,6 +8,7 @@ import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
 import { assetTypeMap, availabilityStatusMap, technicalStatusMap, trackingStatusMap } from '../utils/enummaps.js'
 import { getBrandMap } from '../core/brand.js'
+import { getOrganizationMap } from '../core/organization.js'
 
 const assetQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -90,7 +91,8 @@ function assetMapper(
     arrivalMap: Record<string, number>,
     departureMap: Record<string, number>,
     holdMap: Record<string, number>,
-    originalArrivalMap: Record<string, string>
+    originalArrivalMap: Record<string, string>,
+    orgMap: Record<string, number>
 ) {
 
     return {
@@ -103,14 +105,13 @@ function assetMapper(
         tracking_status: trackingStatusMap[r.status],
         availability_status: availabilityStatusMap[r.status],
         technical_status: technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : TechnicalStatus.NOT_TESTED,
-        purchase_invoice_id: invoiceMap[`${r.arrival_vendor_account_number}:${r.purchase_invoice_number}`],
+        purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
         sales_invoice_id: null,
         arrival_id:  arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
         departure_id: departureMap[r.departure_number],
         hold_id: holdMap[r.hold_number],
         created_at: new Date(r.created_at),
         is_held: !!holdMap[r.hold_number]
-
     }
 }
 
@@ -128,7 +129,8 @@ async function createAssetEntitiesBatch(
     arrivalMap: Record<string, number>,
     departureMap: Record<string, number>,
     holdMap: Record<string, number>,
-    originalArrivalMap: Record<string, string>) {
+    originalArrivalMap: Record<string, string>,
+    orgMap: Record<string, number>) {
 
     console.log(`fetching source entities. ${floor} - ${ceiling}`)
     const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
@@ -145,7 +147,8 @@ async function createAssetEntitiesBatch(
             arrivalMap,
             departureMap,
             holdMap,
-            originalArrivalMap
+            originalArrivalMap,
+            orgMap
         )
     }) 
 
@@ -166,6 +169,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
     const departureMap = await getDepartureMap(prisma)
     const holdMap = await getHoldMap(prisma)
     const originalArrivalMap = await getOriginalArrivalMap(con)
+    const orgMap = await getOrganizationMap(prisma)
 
     const start = 0
     const step = 50000
@@ -184,7 +188,8 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
             arrivalMap,
             departureMap,
             holdMap,
-            originalArrivalMap
+            originalArrivalMap,
+            orgMap
         )
     }
 }
