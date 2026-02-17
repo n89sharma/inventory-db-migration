@@ -46,7 +46,7 @@ async function createAssetTransferBatch(
     console.log('mapping')
     const mappedEntities = Array.from(results).map((r) => {
         return assetTransferMapper(r, assetMap, transferMap)
-    }).filter((r) => !!r.asset_id)
+    }).filter((r) => !!r.asset_id && !!r.transfer_id)
 
     console.log('creating new entities')
     await assetTransferCreator(prisma, mappedEntities)
