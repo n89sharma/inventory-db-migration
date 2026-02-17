@@ -94,11 +94,6 @@ enum GeneralOperation {
   DELETE
 }
 
-enum PartOperation {
-  ADDED
-  REMOVED
-}
-
 enum InvoiceType {
   PURCHASE
   SALE
@@ -155,7 +150,8 @@ model Asset {
   hold                      Hold?                    @relation(fields: [hold_id], references: [id])
   asset_accessories         AssetAccessory[]
   asset_errors              AssetError[]
-  asset_parts               AssetPart[]
+  donated_parts             AssetPart[]               @relation("DonatedParts")
+  received_parts            AssetPart[]               @relation("ReceivedParts")
   asset_transfers           AssetTransfer[]
   files                     File[]
   comments                  Comment[]
@@ -257,17 +253,20 @@ model Part {
 }
 
 model AssetPart {
-  asset_id     Int
-  part_id      Int
-  updated_at   DateTime
-  updated_by   Int
-  part_operation PartOperation
+  id                  Int     @id @default(autoincrement())
+  recipient_asset_id  Int
+  donor_asset_id      Int?
+  store_part_id       Int?
+  updated_at          DateTime
+  updated_by          Int
+  notes               String @db.Text
 
-  asset        Asset   @relation(fields: [asset_id], references: [id])
-  part         Part    @relation(fields: [part_id], references: [id])
-  updatedBy    User    @relation(fields: [updated_by], references: [id])
+  recipient_asset Asset   @relation("ReceivedParts", fields: [recipient_asset_id], references: [id])
+  donor_asset     Asset?   @relation("DonatedParts", fields: [donor_asset_id], references: [id])
+  store_part      Part?    @relation(fields: [store_part_id], references: [id])
+  updatedBy       User    @relation(fields: [updated_by], references: [id])
 
-  @@id([asset_id, part_id])
+  @@unique([recipient_asset_id, donor_asset_id, store_part_id])
 }
 
 model Transfer {

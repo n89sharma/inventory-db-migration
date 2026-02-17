@@ -20,6 +20,7 @@ import { createCommentEntities } from './assets/comment.js'
 import { getArrivalDiff, getAssetDiff, getCommentDiff, getUserDiff } from './utils/diff.js'
 import { createAssetErrorEntities } from './relationships/errors.js'
 import { createAssetAccessories } from './relationships/accessories.js'
+import { createAssetTransferEntities } from './relationships/transfers.js'
 
 const con = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -103,6 +104,9 @@ async function fullRun() {
                               
     console.log('\n asset errors----------')    //16 27,849/ 27,883
     await createAssetErrorEntities(prisma, con)
+
+    console.log('\n asset transfers----------')
+    await createAssetTransferEntities(prisma, con)
 }
 
 async function main() {
@@ -111,7 +115,6 @@ async function main() {
 
     // AssetHistory
     // AssetPart
-    // AssetTransfer
 
     return 0
 }
