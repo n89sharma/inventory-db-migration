@@ -75,3 +75,12 @@ export async function createTransferEntities(prisma: PrismaClient, con: Connecti
     console.log(`done. ${mappedEntities.length} created`)
     return mappedEntities.length
 }
+
+export async function getTransferMap(prisma: PrismaClient) {
+    const entities = await prisma.transfer.findMany()
+  
+    return entities.reduce((map, e) => {
+        map[e.transfer_number] = e.id
+        return map
+    }, {} as Record<string, number>)
+}
