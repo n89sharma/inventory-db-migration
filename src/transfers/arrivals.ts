@@ -23,7 +23,7 @@ const arrivalQuery = `
     LEFT JOIN warehouse w ON a.warehouse_id = w.warehouse_id
     LEFT JOIN user u ON u.user_id = a.added_by
     WHERE 
-        vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653)
+        vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653,4535)
         AND a.added_on != '0000-00-00 00:00:00'
 `
 
@@ -32,78 +32,78 @@ const originalArrivalsQuery = `
 `
 
 interface ArrivalRow extends RowDataPacket {
-    arrival_number: string,
-    vendor: string,
-    code: string,
-    street: string,
-    transporter: string,
-    notes: string,
-    username: string,
-    created_at: string
+  arrival_number: string,
+  vendor: string,
+  code: string,
+  street: string,
+  transporter: string,
+  notes: string,
+  username: string,
+  created_at: string
 }
 
 interface OriginalArrivalRow extends RowDataPacket {
-    barcode: string,
-    arrival_number: string
+  barcode: string,
+  arrival_number: string
 }
 
-function arrivalMapper (
-    r: ArrivalRow, 
-    orgMap: Record<string, number>,
-    warehouseMap: Record<string, number>,
-    userMap: Record<string, number>
+function arrivalMapper(
+  r: ArrivalRow,
+  orgMap: Record<string, number>,
+  warehouseMap: Record<string, number>,
+  userMap: Record<string, number>
 ) {
-    return {
-        arrival_number: r.arrival_number,
-        origin_id: orgMap[r.vendor],
-        destination_id: warehouseMap[`${r.code}:${r.street}`],
-        transporter_id: orgMap[r.transporter],
-        created_by_id: userMap[r.username],
-        notes: r.notes,
-        created_at: new Date(r.created_at)
-    }
+  return {
+    arrival_number: r.arrival_number,
+    origin_id: orgMap[r.vendor],
+    destination_id: warehouseMap[`${r.code}:${r.street}`],
+    transporter_id: orgMap[r.transporter],
+    created_by_id: userMap[r.username],
+    notes: r.notes,
+    created_at: new Date(r.created_at)
+  }
 }
 
-const arrivalCreator = (prisma: PrismaClient, e: any) => prisma.arrival.createMany({data: e})
+const arrivalCreator = (prisma: PrismaClient, e: any) => prisma.arrival.createMany({ data: e })
 
 export async function createArrivalEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log('fetching source entities')
-    const [results] = await con.query<ArrivalRow[]>(arrivalQuery)
-    
-    console.log('mapping')
-    const orgMap = await getOrganizationMap(prisma)
-    const warehouseMap = await getWarehouseMap(prisma)
-    const userMap = await getUserMap(prisma)
+  console.log('fetching source entities')
+  const [results] = await con.query<ArrivalRow[]>(arrivalQuery)
 
-    const mappedEntities = Array.from(results).map((r) => {
-        return arrivalMapper(r, orgMap, warehouseMap, userMap)
-    }) 
+  console.log('mapping')
+  const orgMap = await getOrganizationMap(prisma)
+  const warehouseMap = await getWarehouseMap(prisma)
+  const userMap = await getUserMap(prisma)
 
-    console.log('creating new entities')
-    await arrivalCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  const mappedEntities = Array.from(results).map((r) => {
+    return arrivalMapper(r, orgMap, warehouseMap, userMap)
+  })
+
+  console.log('creating new entities')
+  await arrivalCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
 export async function getArrivalMap(prisma: PrismaClient) {
-    const entities = await prisma.arrival.findMany()
-  
-    return entities.reduce((map, e) => {
-        map[e.arrival_number] = e.id
-        return map
-    }, {} as Record<string, number>)
+  const entities = await prisma.arrival.findMany()
+
+  return entities.reduce((map, e) => {
+    map[e.arrival_number] = e.id
+    return map
+  }, {} as Record<string, number>)
 }
 
 export async function getOriginalArrivalMap(con: Connection) {
-    
-    console.log('fetching source entities')
-    const [results, metadata1] = await con.query<OriginalArrivalRow[]>(originalArrivalsQuery)    
-    const [rows, metadata2] = results
 
-    return rows.reduce((map: any, e: OriginalArrivalRow) => {
-        map[e.barcode] = e.arrival_number
-        return map
-    }, {} as Record<string, string>)
+  console.log('fetching source entities')
+  const [results, metadata1] = await con.query<OriginalArrivalRow[]>(originalArrivalsQuery)
+  const [rows, metadata2] = results
+
+  return rows.reduce((map: any, e: OriginalArrivalRow) => {
+    map[e.barcode] = e.arrival_number
+    return map
+  }, {} as Record<string, string>)
 }
