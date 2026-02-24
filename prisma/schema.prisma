@@ -13,155 +13,121 @@ datasource db {
   provider = "postgresql"
 }
 
-// ENUMS
-enum Accessory {
-  NIC
-  PS
-  PCL
-  UFR
-  FAX
-  USEND
-  DF
-  CASS
-  FIN
-  BF
-  HDD
-  SCAN
+// Static values
+model Accessory {
+  id               Int              @id @default(autoincrement())
+  accessory        String           @unique
+  assetAccessories AssetAccessory[]
 }
 
-enum AssetType {
-  COPIER
-  FINISHER
-  ACCESSORY
-  SCANNER
-  PLOTTER
-  PRINTER
-  WAREHOUSE_SUPPLIES
-  FAX
+model AssetType {
+  id         Int     @id @default(autoincrement())
+  asset_type String  @unique
+  assets     Asset[]
+  models     Model[]
 }
 
-enum TrackingStatus {
-  UNKNOWN
-  MISSING
-
-  PURCHASED
-  INBOUND
-  RECEIVING
-  REPAIRING
-  IN_STOCK
-  PACKING
-  OUTBOUND
-  DELIVERED
+model TrackingStatus {
+  id     Int     @id @default(autoincrement())
+  status String  @unique
+  assets Asset[]
 }
 
-enum AvailabilityStatus {
-  UNKNOWN
-
-  AVAILABLE
-  HELD
-  SOLD
-  PARTS
-  SCRAP
-  RETURNED
-  LEASED
+model AvailabilityStatus {
+  id     Int     @id @default(autoincrement())
+  status String  @unique
+  assets Asset[]
 }
 
-enum TechnicalStatus {
-  NOT_TESTED
-  OK
-  ERROR
-  PREPARED
-  PENDING
+model TechnicalStatus {
+  id     Int     @id @default(autoincrement())
+  status String  @unique
+  assets Asset[]
 }
 
-enum Role {
-  ADMIN
-  MEMBER
-  INVENTORY
-  TECH
-  FINANCE
-  SALES
+model Role {
+  id    Int    @id @default(autoincrement())
+  role  String @unique
+  users User[]
 }
 
-enum FileType {
-  PDF
-  IMAGE
+model FileType {
+  id    Int    @id @default(autoincrement())
+  type  String @unique
+  files File[]
 }
 
-enum GeneralOperation {
-  CREATE
-  UPDATE
-  DELETE
+model Action {
+  id             Int            @id @default(autoincrement())
+  action         String         @unique
+  assetHistories AssetHistory[]
 }
 
-enum InvoiceType {
-  PURCHASE
-  SALE
-  OTHER
+model InvoiceType {
+  id       Int       @id @default(autoincrement())
+  type     String    @unique
+  invoices Invoice[]
 }
 
-enum DataField {
-  location
-  tracking_status
-  technical_status
-  exit_status
-  purchase_invoice
-  sales_invoice
-  arrival
-  departure
-  transfer
-  hold
-  cost
-  technical_specification
-  error
-  accessory
-  part
+model Entity {
+  id             Int            @id @default(autoincrement())
+  entity         String         @unique
+  assetHistories AssetHistory[]
 }
 
 // MODELS
 model Asset {
-  id                        Int                      @id @default(autoincrement())
-  barcode                   String                   @unique @db.VarChar(50)
-  serial_number             String                   @db.VarChar(50)
-  model_id                  Int
-  warehouse_id              Int?
-  asset_location            String?                  @db.VarChar(50)
-  asset_type                AssetType
-  tracking_status           TrackingStatus
-  availability_status       AvailabilityStatus
-  technical_status          TechnicalStatus
-  purchase_invoice_id       Int?
-  sales_invoice_id          Int?
-  arrival_id                Int?
-  departure_id              Int?
-  hold_id                   Int?
-  cost                      Cost?
-  technical_specification   TechnicalSpecification?
-  created_at                DateTime
-  is_held                   Boolean
+  id             Int     @id @default(autoincrement())
+  barcode        String  @unique @db.VarChar(50)
+  serial_number  String  @db.VarChar(50)
+  model_id       Int
+  warehouse_id   Int?
+  asset_location String? @db.VarChar(50)
 
-  model                     Model                    @relation(fields: [model_id], references: [id])
-  warehouse                 Warehouse?               @relation(fields: [warehouse_id], references: [id])
-  location                  Location?                @relation(fields: [warehouse_id, asset_location], references: [warehouse_id, location])
-  purchase_invoice          Invoice?                 @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
-  sales_invoice             Invoice?                 @relation("SalesInvoice", fields: [sales_invoice_id], references: [id])
-  arrival                   Arrival?                 @relation(fields: [arrival_id], references: [id])
-  departure                 Departure?               @relation(fields: [departure_id], references: [id])
-  hold                      Hold?                    @relation(fields: [hold_id], references: [id])
-  asset_accessories         AssetAccessory[]
-  asset_errors              AssetError[]
-  donated_parts             AssetPart[]               @relation("DonatedParts")
-  received_parts            AssetPart[]               @relation("ReceivedParts")
-  asset_transfers           AssetTransfer[]
-  files                     File[]
-  comments                  Comment[]
-  asset_history             AssetHistory[]
+  asset_type_id          Int
+  tracking_status_id     Int
+  availability_status_id Int
+  technical_status_id    Int
+
+  purchase_invoice_id     Int?
+  sales_invoice_id        Int?
+  arrival_id              Int?
+  departure_id            Int?
+  hold_id                 Int?
+  cost                    Cost?
+  technical_specification TechnicalSpecification?
+  created_at              DateTime
+  is_held                 Boolean
+
+  model               Model              @relation(fields: [model_id], references: [id])
+  warehouse           Warehouse?         @relation(fields: [warehouse_id], references: [id])
+  location            Location?          @relation(fields: [warehouse_id, asset_location], references: [warehouse_id, location])
+  purchase_invoice    Invoice?           @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
+  sales_invoice       Invoice?           @relation("SalesInvoice", fields: [sales_invoice_id], references: [id])
+  arrival             Arrival?           @relation(fields: [arrival_id], references: [id])
+  departure           Departure?         @relation(fields: [departure_id], references: [id])
+  hold                Hold?              @relation(fields: [hold_id], references: [id])
+  asset_type          AssetType          @relation(fields: [asset_type_id], references: [id])
+  tracking_status     TrackingStatus     @relation(fields: [tracking_status_id], references: [id])
+  availability_status AvailabilityStatus @relation(fields: [availability_status_id], references: [id])
+  technical_status    TechnicalStatus    @relation(fields: [technical_status_id], references: [id])
+  asset_accessories   AssetAccessory[]
+  asset_errors        AssetError[]
+  donated_parts       AssetPart[]        @relation("DonatedParts")
+  received_parts      AssetPart[]        @relation("ReceivedParts")
+  asset_transfers     AssetTransfer[]
+  files               File[]
+  comments            Comment[]
+  asset_history       AssetHistory[]
 
   @@index([serial_number])
-  @@index([warehouse_id])
   @@index([model_id])
-  @@index([model_id, warehouse_id])
-  @@index([model_id, warehouse_id, availability_status, tracking_status])
+  @@index([warehouse_id])
+  @@index([asset_location])
+  @@index([asset_type_id])
+  @@index([tracking_status_id])
+  @@index([availability_status_id])
+  @@index([technical_status_id])
   @@index([arrival_id])
   @@index([departure_id])
   @@index([hold_id])
@@ -171,119 +137,132 @@ model Asset {
 }
 
 model TechnicalSpecification {
-  id                 Int     @id @default(autoincrement())
-  asset_id           Int     @unique
-  cassettes          Int?
-  internal_finisher  String? @db.Text
-  meter_black        BigInt?
-  meter_colour       BigInt?
-  meter_total        BigInt?
-  drum_life_c        Int?
-  drum_life_m        Int?
-  drum_life_y        Int?
-  drum_life_k        Int?
+  id                Int     @id @default(autoincrement())
+  asset_id          Int     @unique
+  cassettes         Int?
+  internal_finisher String? @db.Text
+  meter_black       BigInt?
+  meter_colour      BigInt?
+  meter_total       BigInt?
+  drum_life_c       Int?
+  drum_life_m       Int?
+  drum_life_y       Int?
+  drum_life_k       Int?
 
-  asset              Asset   @relation(fields: [asset_id], references: [id])
+  asset Asset @relation(fields: [asset_id], references: [id])
+
+  @@index([meter_black])
+  @@index([meter_colour])
   @@index([meter_total])
+  @@index([internal_finisher])
 }
 
 model Cost {
-  id                Int     @id @default(autoincrement())
-  asset_id          Int     @unique
-  purchase_cost     Decimal? @db.Decimal(12,2)
-  transport_cost    Decimal? @db.Decimal(12,2)
-  processing_cost   Decimal? @db.Decimal(12,2)
-  other_cost        Decimal? @db.Decimal(12,2)
-  parts_cost        Decimal? @db.Decimal(12,2)
-  total_cost        Decimal? @db.Decimal(12,2)
-  sale_price        Decimal? @db.Decimal(12,2)
+  id              Int      @id @default(autoincrement())
+  asset_id        Int      @unique
+  purchase_cost   Decimal? @db.Decimal(12, 2)
+  transport_cost  Decimal? @db.Decimal(12, 2)
+  processing_cost Decimal? @db.Decimal(12, 2)
+  other_cost      Decimal? @db.Decimal(12, 2)
+  parts_cost      Decimal? @db.Decimal(12, 2)
+  total_cost      Decimal? @db.Decimal(12, 2)
+  sale_price      Decimal? @db.Decimal(12, 2)
 
-  asset             Asset   @relation(fields: [asset_id], references: [id])
+  asset Asset @relation(fields: [asset_id], references: [id])
+
+  @@index([purchase_cost])
+  @@index([transport_cost])
+  @@index([processing_cost])
+  @@index([other_cost])
+  @@index([parts_cost])
+  @@index([total_cost])
+  @@index([sale_price])
 }
 
 model AssetAccessory {
-  asset_id   Int
-  accessory  Accessory
+  asset_id     Int
+  accessory_id Int
 
-  asset      Asset    @relation(fields: [asset_id], references: [id])
+  accessory Accessory @relation(fields: [accessory_id], references: [id])
+  asset     Asset     @relation(fields: [asset_id], references: [id])
 
-  @@id([asset_id, accessory])
+  @@id([asset_id, accessory_id])
 }
 
 model Error {
-  id                  Int             @id @default(autoincrement())
-  brand_id            Int
+  id       Int @id @default(autoincrement())
+  brand_id Int
 
-  code                String          @db.VarChar(15)
-  description         String?
-  category            String          @db.Text
+  code        String  @db.VarChar(15)
+  description String?
+  category    String  @db.Text
 
-  brand               Brand           @relation(fields: [brand_id], references: [id])
-  asset_errors        AssetError[]
-  
-  @@index([code])
+  brand        Brand        @relation(fields: [brand_id], references: [id])
+  asset_errors AssetError[]
+
   @@unique([brand_id, code])
+  @@index([code])
 }
 
 model AssetError {
-  asset_id     Int
-  error_id     Int
-  is_fixed     Boolean
-  added_by     Int?
-  added_at     DateTime?
-  fixed_by     Int?
-  fixed_at     DateTime?
+  asset_id Int
+  error_id Int
+  is_fixed Boolean
+  added_by Int?
+  added_at DateTime?
+  fixed_by Int?
+  fixed_at DateTime?
 
-  asset        Asset      @relation(fields: [asset_id], references: [id])
-  error        Error      @relation(fields: [error_id], references: [id])
-  addedBy      User?       @relation("ErrorAddedBy", fields: [added_by], references: [id])
-  fixedBy      User?      @relation("ErrorFixedBy", fields: [fixed_by], references: [id])
+  asset   Asset @relation(fields: [asset_id], references: [id])
+  error   Error @relation(fields: [error_id], references: [id])
+  addedBy User? @relation("ErrorAddedBy", fields: [added_by], references: [id])
+  fixedBy User? @relation("ErrorFixedBy", fields: [fixed_by], references: [id])
 
   @@id([asset_id, error_id])
 }
 
 model Part {
-  id            Int     @id @default(autoincrement())
-  description   String  @db.Text
-  part_number   String  @unique @db.VarChar(50)
-  dealer_price  Decimal @db.Decimal(12,2)
-  sale_price    Decimal @db.Decimal(12,2)
-  cost          Decimal @db.Decimal(12,2)
-  asset_parts   AssetPart[]
+  id           Int         @id @default(autoincrement())
+  description  String      @db.Text
+  part_number  String      @unique @db.VarChar(50)
+  dealer_price Decimal     @db.Decimal(12, 2)
+  sale_price   Decimal     @db.Decimal(12, 2)
+  cost         Decimal     @db.Decimal(12, 2)
+  asset_parts  AssetPart[]
 }
 
 model AssetPart {
-  id                  Int     @id @default(autoincrement())
-  recipient_asset_id  Int
-  donor_asset_id      Int?
-  store_part_id       Int?
-  updated_at          DateTime
-  updated_by          Int
-  notes               String @db.Text
+  id                 Int      @id @default(autoincrement())
+  recipient_asset_id Int
+  donor_asset_id     Int?
+  store_part_id      Int?
+  updated_at         DateTime
+  updated_by         Int
+  notes              String   @db.Text
 
-  recipient_asset Asset   @relation("ReceivedParts", fields: [recipient_asset_id], references: [id])
-  donor_asset     Asset?   @relation("DonatedParts", fields: [donor_asset_id], references: [id])
-  store_part      Part?    @relation(fields: [store_part_id], references: [id])
-  updatedBy       User    @relation(fields: [updated_by], references: [id])
+  recipient_asset Asset  @relation("ReceivedParts", fields: [recipient_asset_id], references: [id])
+  donor_asset     Asset? @relation("DonatedParts", fields: [donor_asset_id], references: [id])
+  store_part      Part?  @relation(fields: [store_part_id], references: [id])
+  updatedBy       User   @relation(fields: [updated_by], references: [id])
 
   @@unique([recipient_asset_id, donor_asset_id, store_part_id])
 }
 
 model Transfer {
-  id               Int      @id @default(autoincrement())
-  transfer_number  String   @unique @db.VarChar(50)
-  origin_id        Int
-  destination_id   Int
-  transporter_id   Int
-  created_by_id    Int
-  notes            String?
-  created_at       DateTime
+  id              Int      @id @default(autoincrement())
+  transfer_number String   @unique @db.VarChar(50)
+  origin_id       Int
+  destination_id  Int
+  transporter_id  Int
+  created_by_id   Int
+  notes           String?
+  created_at      DateTime
 
-  origin           Warehouse     @relation("TransferOrigin", fields: [origin_id], references: [id])
-  destination      Warehouse     @relation("TransferDestination", fields: [destination_id], references: [id])
-  transporter      Organization  @relation(fields: [transporter_id], references: [id])
-  created_by       User          @relation(fields: [created_by_id], references: [id])
-  asset_transfers  AssetTransfer[]
+  origin          Warehouse       @relation("TransferOrigin", fields: [origin_id], references: [id])
+  destination     Warehouse       @relation("TransferDestination", fields: [destination_id], references: [id])
+  transporter     Organization    @relation(fields: [transporter_id], references: [id])
+  created_by      User            @relation(fields: [created_by_id], references: [id])
+  asset_transfers AssetTransfer[]
 
   @@index([created_at(sort: Desc)])
   @@index([origin_id, destination_id])
@@ -295,27 +274,27 @@ model AssetTransfer {
   asset_id    Int
   transfer_id Int
 
-  asset       Asset     @relation(fields: [asset_id], references: [id])
-  transfer    Transfer  @relation(fields: [transfer_id], references: [id])
+  asset    Asset    @relation(fields: [asset_id], references: [id])
+  transfer Transfer @relation(fields: [transfer_id], references: [id])
 
   @@id([asset_id, transfer_id])
 }
 
 model Arrival {
-  id              Int      @id @default(autoincrement())
-  arrival_number  String   @unique @db.VarChar(50)
-  origin_id       Int
-  destination_id  Int?
-  transporter_id  Int
-  created_by_id   Int?
-  notes           String?   @db.Text
-  created_at      DateTime  
+  id             Int      @id @default(autoincrement())
+  arrival_number String   @unique @db.VarChar(50)
+  origin_id      Int
+  destination_id Int?
+  transporter_id Int
+  created_by_id  Int?
+  notes          String?  @db.Text
+  created_at     DateTime
 
-  origin          Organization  @relation("ArrivalOrigin", fields: [origin_id], references: [id])
-  destination     Warehouse?    @relation(fields: [destination_id], references: [id])
-  transporter     Organization  @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
-  created_by      User?         @relation(fields: [created_by_id], references: [id])
-  assets          Asset[]
+  origin      Organization @relation("ArrivalOrigin", fields: [origin_id], references: [id])
+  destination Warehouse?   @relation(fields: [destination_id], references: [id])
+  transporter Organization @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
+  created_by  User?        @relation(fields: [created_by_id], references: [id])
+  assets      Asset[]
 
   @@index([destination_id, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
@@ -325,22 +304,22 @@ model Arrival {
 }
 
 model Departure {
-  id                     Int      @id @default(autoincrement())
-  departure_number       String   @unique @db.VarChar(50)
-  origin_id              Int
-  destination_id         Int
-  transporter_id         Int
-  created_by_id          Int?
+  id                      Int      @id @default(autoincrement())
+  departure_number        String   @unique @db.VarChar(50)
+  origin_id               Int
+  destination_id          Int
+  transporter_id          Int
+  created_by_id           Int?
   sales_representative_id Int?
-  notes                  String?
-  created_at             DateTime
+  notes                   String?
+  created_at              DateTime
 
-  origin                 Warehouse     @relation(fields: [origin_id], references: [id])
-  destination            Organization  @relation(fields: [destination_id], references: [id])
-  transporter            Organization  @relation("DepartureTransporter", fields: [transporter_id], references: [id])
-  created_by             User?         @relation(fields: [created_by_id], references: [id])
-  sales_representative   User?         @relation("SalesRep", fields: [sales_representative_id], references: [id])
-  assets                 Asset[]
+  origin               Warehouse    @relation(fields: [origin_id], references: [id])
+  destination          Organization @relation(fields: [destination_id], references: [id])
+  transporter          Organization @relation("DepartureTransporter", fields: [transporter_id], references: [id])
+  created_by           User?        @relation(fields: [created_by_id], references: [id])
+  sales_representative User?        @relation("SalesRep", fields: [sales_representative_id], references: [id])
+  assets               Asset[]
 
   @@index([origin_id, created_at(sort: Desc)])
   @@index([created_at(sort: Desc)])
@@ -350,8 +329,8 @@ model Departure {
 }
 
 model Hold {
-  id             Int      @id @default(autoincrement())
-  hold_number    String   @unique @db.VarChar(50)
+  id             Int       @id @default(autoincrement())
+  hold_number    String    @unique @db.VarChar(50)
   created_by_id  Int
   created_for_id Int
   customer_id    Int
@@ -360,10 +339,10 @@ model Hold {
   from_dt        DateTime?
   to_dt          DateTime?
 
-  created_by     User         @relation("HoldCreatedBy", fields: [created_by_id], references: [id])
-  created_for    User         @relation("HoldCreatedFor", fields: [created_for_id], references: [id])
-  customer       Organization @relation(fields: [customer_id], references: [id])
-  assets         Asset[]
+  created_by  User         @relation("HoldCreatedBy", fields: [created_by_id], references: [id])
+  created_for User         @relation("HoldCreatedFor", fields: [created_for_id], references: [id])
+  customer    Organization @relation(fields: [customer_id], references: [id])
+  assets      Asset[]
 
   @@index([created_at(sort: Desc)])
   @@index([created_for_id, customer_id])
@@ -374,45 +353,47 @@ model Hold {
 }
 
 model Invoice {
-  id                Int      @id @default(autoincrement())
-  invoice_number    String   @db.Text
-  organization_id   Int
-  updated_by_id     Int
-  is_cleared        Boolean
-  created_at        DateTime
-  invoice_type      InvoiceType
+  id              Int      @id @default(autoincrement())
+  invoice_number  String   @db.Text
+  organization_id Int
+  updated_by_id   Int
+  is_cleared      Boolean
+  created_at      DateTime
+  invoice_type_id Int
 
-  organization      Organization @relation(fields: [organization_id], references: [id])
-  updated_by        User         @relation(fields: [updated_by_id], references: [id])
-  purchase_assets   Asset[]      @relation("PurchaseInvoice")
-  sales_assets      Asset[]      @relation("SalesInvoice")
+  invoice_type    InvoiceType  @relation(fields: [invoice_type_id], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  updated_by      User         @relation(fields: [updated_by_id], references: [id])
+  purchase_assets Asset[]      @relation("PurchaseInvoice")
+  sales_assets    Asset[]      @relation("SalesInvoice")
 
   @@unique([organization_id, invoice_number])
   @@index([created_at(sort: Desc)])
-  @@index([invoice_type, invoice_number])
+  @@index([invoice_type_id])
   @@index([invoice_number])
 }
 
 model Warehouse {
-  id         Int                    @id @default(autoincrement())
-  city_code  String                 @db.Char(3)
-  street     String                 @db.Text
-  assets     Asset[]
-  origin_transfers Transfer[]       @relation("TransferOrigin")
+  id                    Int         @id @default(autoincrement())
+  city_code             String      @db.Char(3)
+  street                String      @db.Text
+  assets                Asset[]
+  origin_transfers      Transfer[]  @relation("TransferOrigin")
   destination_transfers Transfer[]  @relation("TransferDestination")
-  departures Departure[]            
-  arrivals Arrival[]
-  locations Location[]
+  departures            Departure[]
+  arrivals              Arrival[]
+  locations             Location[]
 
   @@unique([city_code, street])
 }
 
 model Location {
   warehouse_id Int
-  location  String  @db.VarChar(50) 
-  
+  location     String @db.VarChar(50)
+
   warehouse Warehouse @relation(fields: [warehouse_id], references: [id])
   assets    Asset[]
+
   @@id([warehouse_id, location])
 }
 
@@ -424,33 +405,35 @@ model Brand {
 }
 
 model Model {
-  id          Int        @id @default(autoincrement())
-  name        String     @db.Text
-  asset_type  AssetType
-  weight      Float
-  size        Float
+  id         Int       @id @default(autoincrement())
+  name       String    @db.Text
+  asset_type AssetType @relation(fields: [asset_type_id], references: [id])
+  weight     Float
+  size       Float
 
-  brand       Brand      @relation(fields: [brand_id], references: [id])
-  brand_id    Int
-  assets      Asset[]
+  brand         Brand   @relation(fields: [brand_id], references: [id])
+  brand_id      Int
+  assets        Asset[]
+  asset_type_id Int
 
   @@unique([brand_id, name])
   @@index([name])
 }
 
 model File {
-  id              Int      @id @default(autoincrement())
-  asset_id        Int
-  uploaded_by_id  Int
-  name            String   @db.Text
-  type            FileType
-  data            Bytes
-  url             String
-  size            Int
-  uploaded_at     DateTime
+  id             Int      @id @default(autoincrement())
+  asset_id       Int
+  uploaded_by_id Int
+  name           String   @db.Text
+  data           Bytes
+  url            String
+  size           Int
+  uploaded_at    DateTime
+  file_type_id   Int
 
-  asset           Asset     @relation(fields: [asset_id], references: [id])
-  uploaded_by     User      @relation(fields: [uploaded_by_id], references: [id])
+  type        FileType @relation(fields: [file_type_id], references: [id])
+  asset       Asset    @relation(fields: [asset_id], references: [id])
+  uploaded_by User     @relation(fields: [uploaded_by_id], references: [id])
 
   @@index([asset_id, uploaded_at(sort: Desc)])
   @@index([uploaded_by_id])
@@ -458,81 +441,84 @@ model File {
 }
 
 model Comment {
-  id          Int      @id @default(autoincrement())
-  asset_id    Int
-  created_by_id     Int
-  comment     String
-  created_at  DateTime
-  updated_at  DateTime
+  id            Int      @id @default(autoincrement())
+  asset_id      Int
+  created_by_id Int
+  comment       String
+  created_at    DateTime
+  updated_at    DateTime
 
-  asset       Asset     @relation(fields: [asset_id], references: [id])
-  created_by  User      @relation(fields: [created_by_id], references: [id])
-  
+  asset      Asset @relation(fields: [asset_id], references: [id])
+  created_by User  @relation(fields: [created_by_id], references: [id])
+
   @@index([asset_id, created_at(sort: Desc)])
   @@index([created_by_id])
 }
 
 model User {
-  id            Int      @id @default(autoincrement())
-  username      String   @unique @db.Text
-  email         String   @db.Text
-  name          String   @db.Text
-  googleId      String?  @unique @db.Text
-  role          Role
+  id       Int     @id @default(autoincrement())
+  username String  @unique @db.Text
+  email    String  @db.Text
+  name     String  @db.Text
+  googleId String? @unique @db.Text
+  role_id  Int
+  role     Role    @relation(fields: [role_id], references: [id])
 
-  asset_errors_added AssetError[] @relation("ErrorAddedBy")
-  asset_errors_fixed AssetError[] @relation("ErrorFixedBy")
-  transfers     Transfer[]
-  departures    Departure[]
-  departure_sales_reps Departure[] @relation("SalesRep")
-  arrivals      Arrival[]
-  holds_created Hold[] @relation("HoldCreatedBy")
-  holds_for     Hold[] @relation("HoldCreatedFor")
-  invoices_updated Invoice[]
-  files         File[]
-  comments      Comment[]
-  asset_history AssetHistory[]
-  asset_parts   AssetPart[]
+  asset_errors_added   AssetError[]   @relation("ErrorAddedBy")
+  asset_errors_fixed   AssetError[]   @relation("ErrorFixedBy")
+  transfers            Transfer[]
+  departures           Departure[]
+  departure_sales_reps Departure[]    @relation("SalesRep")
+  arrivals             Arrival[]
+  holds_created        Hold[]         @relation("HoldCreatedBy")
+  holds_for            Hold[]         @relation("HoldCreatedFor")
+  invoices_updated     Invoice[]
+  files                File[]
+  comments             Comment[]
+  asset_history        AssetHistory[]
+  asset_parts          AssetPart[]
 }
 
 model Organization {
-  id                Int      @id @default(autoincrement())
-  account_number    String   @unique @db.VarChar(50)
-  name              String   @db.Text
-  contact_name      String?  @db.Text
-  phone             String?  @db.Text
-  phone_ext         String?  @db.Text
-  mobile            String?  @db.Text
-  primary_email     String?  @db.Text
-  secondary_email   String?  @db.Text
-  address           String?  @db.Text
-  city              String?  @db.Text
-  province          String?  @db.Text
-  country           String?  @db.Text
-  website           String?  @db.Text
+  id              Int     @id @default(autoincrement())
+  account_number  String  @unique @db.VarChar(50)
+  name            String  @db.Text
+  contact_name    String? @db.Text
+  phone           String? @db.Text
+  phone_ext       String? @db.Text
+  mobile          String? @db.Text
+  primary_email   String? @db.Text
+  secondary_email String? @db.Text
+  address         String? @db.Text
+  city            String? @db.Text
+  province        String? @db.Text
+  country         String? @db.Text
+  website         String? @db.Text
 
-  invoices          Invoice[]
-  arrivals_origin   Arrival[] @relation("ArrivalOrigin")
-  arrivals_transporter Arrival[] @relation("ArrivalTransporter")
+  invoices               Invoice[]
+  arrivals_origin        Arrival[]   @relation("ArrivalOrigin")
+  arrivals_transporter   Arrival[]   @relation("ArrivalTransporter")
   departures_destination Departure[]
   departures_transporter Departure[] @relation("DepartureTransporter")
-  holds             Hold[]
-  transfers         Transfer[]
+  holds                  Hold[]
+  transfers              Transfer[]
 
   @@index([name])
 }
 
 model AssetHistory {
-  id           Int        @id @default(autoincrement())
-  asset_id     Int
-  user_id      Int
-  operation    GeneralOperation
-  data_field   DataField
-  changed_on   DateTime
-  changes      Json
+  id         Int      @id @default(autoincrement())
+  asset_id   Int
+  user_id    Int
+  action_id  Int
+  entity_id  Int
+  changed_on DateTime
+  changes    Json
 
-  asset        Asset     @relation(fields: [asset_id], references: [id])
-  user         User      @relation(fields: [user_id], references: [id])
+  asset  Asset  @relation(fields: [asset_id], references: [id])
+  user   User   @relation(fields: [user_id], references: [id])
+  action Action @relation(fields: [action_id], references: [id])
+  entity Entity @relation(fields: [entity_id], references: [id])
 
   @@index([asset_id, changed_on(sort: Desc)])
 }

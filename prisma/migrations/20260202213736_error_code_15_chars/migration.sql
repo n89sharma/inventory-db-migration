@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Error" ALTER COLUMN "code" SET DATA TYPE CHAR(15);
