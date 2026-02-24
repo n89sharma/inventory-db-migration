@@ -1,5 +1,5 @@
 import { prisma } from './prisma.js'
-import mysql, { RowDataPacket } from 'mysql2/promise'
+import mysql, { Connection } from 'mysql2/promise'
 import { createModelEntities } from './core/model.js'
 import { createBrandEntities } from './core/brand.js'
 import { createWarehouseEntities } from './core/warehouse.js'
@@ -17,12 +17,12 @@ import { createAssetEntities } from './assets/asset.js'
 import { createTechSpecEntities } from './assets/techspecs.js'
 import { createCostEntities } from './assets/cost.js'
 import { createCommentEntities } from './assets/comment.js'
-import { getArrivalDiff, getAssetDiff, getCommentDiff, getUserDiff } from './utils/diff.js'
 import { createAssetErrorEntities } from './relationships/errors.js'
 import { createAssetAccessories } from './relationships/accessories.js'
 import { createAssetTransferEntities } from './relationships/transfers.js'
 import { createAssetPartEntities } from './relationships/parts.js'
 import { createStaticTables } from './core/static.js'
+import { PrismaClient } from '../generated/prisma/client.js'
 
 const con = await mysql.createConnection({
   host: process.env.DB_HOST,
@@ -32,7 +32,7 @@ const con = await mysql.createConnection({
   port: parseInt(process.env.DB_PORT!)
 })
 
-async function fullRun() {
+async function fullRun(prisma: PrismaClient, con: Connection) {
   //==================================================================
   //Phase 1: Create reference data
   console.log('\n static tables----------')
@@ -119,7 +119,7 @@ async function fullRun() {
 
 async function main() {
 
-  await fullRun()
+  await fullRun(prisma, con)
 
   return 0
 }

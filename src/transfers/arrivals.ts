@@ -3,6 +3,7 @@ import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getOrganizationMap } from '../core/organization.js'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getUserMap } from '../core/user.js'
+import { ArrivalUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 //--------------------------------------------------------------------
 // (9) ARRIVAL
@@ -51,8 +52,8 @@ function arrivalMapper(
   r: ArrivalRow,
   orgMap: Record<string, number>,
   warehouseMap: Record<string, number>,
-  userMap: Record<string, number>
-) {
+  userMap: Record<string, number>): ArrivalUncheckedCreateInput {
+
   return {
     arrival_number: r.arrival_number,
     origin_id: orgMap[r.vendor],

@@ -3,6 +3,7 @@ import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getOrganizationMap } from '../core/organization.js'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getUserMap } from '../core/user.js'
+import { DepartureUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const departureQuery = `
     SELECT
@@ -27,59 +28,59 @@ const departureQuery = `
 `
 
 interface DepartureRow extends RowDataPacket {
-    departure_number: string,
-    customer: string,
-    code: string,
-    street: string,
-    transporter: string,
-    notes: string,
-    username: string,
-    created_at: string
+  departure_number: string,
+  customer: string,
+  code: string,
+  street: string,
+  transporter: string,
+  notes: string,
+  username: string,
+  created_at: string
 }
 
-function departureMapper (
-    r: DepartureRow, 
-    orgMap: Record<string, number>,
-    warehouseMap: Record<string, number>,
-    userMap: Record<string, number>
-) {
-    return {
-        departure_number: r.departure_number,
-        origin_id: warehouseMap[`${r.code}:${r.street}`],
-        destination_id: orgMap[r.customer],
-        transporter_id: orgMap[r.transporter],
-        created_by_id: userMap[r.username],
-        notes: r.notes,
-        created_at: new Date(r.created_at)
-    }
+function departureMapper(
+  r: DepartureRow,
+  orgMap: Record<string, number>,
+  warehouseMap: Record<string, number>,
+  userMap: Record<string, number>): DepartureUncheckedCreateInput {
+
+  return {
+    departure_number: r.departure_number,
+    origin_id: warehouseMap[`${r.code}:${r.street}`],
+    destination_id: orgMap[r.customer],
+    transporter_id: orgMap[r.transporter],
+    created_by_id: userMap[r.username],
+    notes: r.notes,
+    created_at: new Date(r.created_at)
+  }
 }
 
-const departureCreator = (prisma: PrismaClient, e: any) => prisma.departure.createMany({data: e})
+const departureCreator = (prisma: PrismaClient, e: any) => prisma.departure.createMany({ data: e })
 
 export async function createDepartureEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log('fetching source entities')
-    const [results] = await con.query<DepartureRow[]>(departureQuery)
-    
-    console.log('mapping')
-    const orgMap = await getOrganizationMap(prisma)
-    const warehouseMap = await getWarehouseMap(prisma)
-    const userMap = await getUserMap(prisma)
+  console.log('fetching source entities')
+  const [results] = await con.query<DepartureRow[]>(departureQuery)
 
-    const mappedEntities = Array.from(results).map((r) => {
-        return departureMapper(r, orgMap, warehouseMap, userMap)
-    }) 
+  console.log('mapping')
+  const orgMap = await getOrganizationMap(prisma)
+  const warehouseMap = await getWarehouseMap(prisma)
+  const userMap = await getUserMap(prisma)
 
-    console.log('creating new entities')
-    await departureCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  const mappedEntities = Array.from(results).map((r) => {
+    return departureMapper(r, orgMap, warehouseMap, userMap)
+  })
+
+  console.log('creating new entities')
+  await departureCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
 export async function getDepartureMap(prisma: PrismaClient) {
   const entities = await prisma.departure.findMany()
-  
+
   return entities.reduce((map, e) => {
     map[e.departure_number] = e.id
     return map

@@ -2,6 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getAccessoryIdMap } from '../core/static.js'
 import { getAssetMap } from '../assets/asset.js'
+import { AssetAccessoryUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const accessoriesQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -22,11 +23,11 @@ interface AccessoryRow extends RowDataPacket {
 function accessoryMapper(
   r: AccessoryRow,
   assetMap: Record<string, number>,
-  accessoryMap: Record<string, number>) {
+  accessoryMap: Record<string, number>): AssetAccessoryUncheckedCreateInput {
 
   return {
     asset_id: assetMap[r.barcode],
-    accessory: accessoryMap[r.accessory]
+    accessory_id: accessoryMap[r.accessory]
   }
 }
 

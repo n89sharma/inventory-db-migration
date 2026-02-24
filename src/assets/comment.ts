@@ -2,6 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getAssetMap } from './asset.js'
 import { getUserMap } from '../core/user.js'
+import { CommentUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const commentQuery = (floor: number, ceiling: number) => `
     SELECT 
@@ -23,62 +24,62 @@ const commentQuery = (floor: number, ceiling: number) => `
 `
 
 interface CommentRow extends RowDataPacket {
-    barcode: string,
-    created_by: string,
-    comment: string,
-    created_at: string,
-    updated_at: string
+  barcode: string,
+  created_by: string,
+  comment: string,
+  created_at: string,
+  updated_at: string
 }
 
 function commentMapper(
-    r: CommentRow, 
-    assetMap: Record<string, number>,
-    userMap: Record<string, number>
-) {
-    return {
-        asset_id: assetMap[r.barcode],
-        created_by_id: userMap[r.created_by] ? userMap[r.created_by] : 289,
-        comment: r.comment,
-        created_at: new Date(r.created_at),
-        updated_at: new Date(r.updated_at)
-    }
+  r: CommentRow,
+  assetMap: Record<string, number>,
+  userMap: Record<string, number>
+): CommentUncheckedCreateInput {
+  return {
+    asset_id: assetMap[r.barcode],
+    created_by_id: userMap[r.created_by] ? userMap[r.created_by] : 289,
+    comment: r.comment,
+    created_at: new Date(r.created_at),
+    updated_at: new Date(r.updated_at)
+  }
 }
 
-const commentCreator = (prisma: PrismaClient, e: any) => prisma.comment.createMany({data: e})
+const commentCreator = (prisma: PrismaClient, e: any) => prisma.comment.createMany({ data: e })
 
 async function createAssetEntitiesBatch(
-    prisma: PrismaClient, 
-    con: Connection, 
-    floor: number, 
-    ceiling: number,
-    assetMap: Record<string, number>,
-    userMap: Record<string, number>) {
+  prisma: PrismaClient,
+  con: Connection,
+  floor: number,
+  ceiling: number,
+  assetMap: Record<string, number>,
+  userMap: Record<string, number>) {
 
-    console.log(`fetching source entities. ${floor} - ${ceiling}`)
-    const [results] = await con.query<CommentRow[]>(commentQuery(floor, ceiling))
-    
-    console.log('mapping')
-    const mappedEntities = Array.from(results).map((r) => {
-        return commentMapper(r, assetMap, userMap)
-    }).filter((r) => !!r.asset_id)
+  console.log(`fetching source entities. ${floor} - ${ceiling}`)
+  const [results] = await con.query<CommentRow[]>(commentQuery(floor, ceiling))
 
-    console.log('creating new entities')
-    await commentCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log('mapping')
+  const mappedEntities = Array.from(results).map((r) => {
+    return commentMapper(r, assetMap, userMap)
+  }).filter((r) => !!r.asset_id)
+
+  console.log('creating new entities')
+  await commentCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
-export async function createCommentEntities(prisma: PrismaClient, con: Connection){
+export async function createCommentEntities(prisma: PrismaClient, con: Connection) {
 
-    const start = 0
-    const step = 50000
-    const assetMap = await getAssetMap(prisma)
-    const userMap = await getUserMap(prisma)
+  const start = 0
+  const step = 50000
+  const assetMap = await getAssetMap(prisma)
+  const userMap = await getUserMap(prisma)
 
-    for(let i=start; i<381007; i=i+step) {
-        let floor = i + 1
-        let ceiling = i + step
-        await createAssetEntitiesBatch(prisma, con, floor, ceiling, assetMap, userMap)
-    }
+  for (let i = start; i < 381007; i = i + step) {
+    let floor = i + 1
+    let ceiling = i + step
+    await createAssetEntitiesBatch(prisma, con, floor, ceiling, assetMap, userMap)
+  }
 }

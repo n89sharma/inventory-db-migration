@@ -3,6 +3,7 @@ import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getOrganizationMap } from '../core/organization.js'
 import { getUserMap } from '../core/user.js'
 import { getInvoiceTypeIdMap } from '../core/static.js'
+import { InvoiceUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const invoiceQuery = `
     SELECT 
@@ -45,15 +46,15 @@ function invoiceMapper(
   r: InvoiceRow,
   orgMap: Record<string, number>,
   userMap: Record<string, number>,
-  invoiceTypeMap: Record<string, number>
-) {
+  invoiceTypeMap: Record<string, number>): InvoiceUncheckedCreateInput {
+
   return {
     invoice_number: r.invoice_number,
     organization_id: orgMap[r.account_number],
     updated_by_id: userMap[r.updated_by],
     is_cleared: !!r.is_cleared,
     created_at: new Date(r.created_at),
-    invoice_type: invoiceTypeMap[r.invoice_type]
+    invoice_type_id: invoiceTypeMap[r.invoice_type]
   }
 }
 

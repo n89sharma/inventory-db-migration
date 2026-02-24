@@ -2,6 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getOrganizationMap } from '../core/organization.js'
 import { getUserMap } from '../core/user.js'
+import { HoldUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const holdQuery = `
     SELECT
@@ -31,58 +32,58 @@ const holdQuery = `
 `
 
 interface HoldRow extends RowDataPacket {
-    hold_number: string,
-    created_by: string,
-    created_for: string,
-    customer: string,
-    notes: string,
-    created_at: string,
-    from_dt: string,
-    to_dt: string
+  hold_number: string,
+  created_by: string,
+  created_for: string,
+  customer: string,
+  notes: string,
+  created_at: string,
+  from_dt: string,
+  to_dt: string
 }
 
-function holdMapper (
-    r: HoldRow, 
-    orgMap: Record<string, number>,
-    userMap: Record<string, number>
-) {
-    return {
-        hold_number: r.hold_number,
-        created_by_id: userMap[r.created_by],
-        created_for_id: userMap[r.created_for],
-        customer_id: orgMap[r.customer],
-        notes: r.notes,
-        created_at: new Date(r.created_at),
-        from_dt: r.from_dt ? new Date(r.from_dt) : null,
-        to_dt: r.to_dt ? new Date(r.to_dt) : null
-    }
+function holdMapper(
+  r: HoldRow,
+  orgMap: Record<string, number>,
+  userMap: Record<string, number>): HoldUncheckedCreateInput {
+
+  return {
+    hold_number: r.hold_number,
+    created_by_id: userMap[r.created_by],
+    created_for_id: userMap[r.created_for],
+    customer_id: orgMap[r.customer],
+    notes: r.notes,
+    created_at: new Date(r.created_at),
+    from_dt: r.from_dt ? new Date(r.from_dt) : null,
+    to_dt: r.to_dt ? new Date(r.to_dt) : null
+  }
 }
 
-const holdCreator = (prisma: PrismaClient, e: any) => prisma.hold.createMany({data: e})
+const holdCreator = (prisma: PrismaClient, e: any) => prisma.hold.createMany({ data: e })
 
 export async function createHoldEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log('fetching source entities')
-    const [results] = await con.query<HoldRow[]>(holdQuery)
-    
-    console.log('mapping')
-    const orgMap = await getOrganizationMap(prisma)
-    const userMap = await getUserMap(prisma)
+  console.log('fetching source entities')
+  const [results] = await con.query<HoldRow[]>(holdQuery)
 
-    const mappedEntities = Array.from(results).map((r) => {
-        return holdMapper(r, orgMap, userMap)
-    }) 
+  console.log('mapping')
+  const orgMap = await getOrganizationMap(prisma)
+  const userMap = await getUserMap(prisma)
 
-    console.log('creating new entities')
-    await holdCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  const mappedEntities = Array.from(results).map((r) => {
+    return holdMapper(r, orgMap, userMap)
+  })
+
+  console.log('creating new entities')
+  await holdCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
 export async function getHoldMap(prisma: PrismaClient) {
   const entities = await prisma.hold.findMany()
-  
+
   return entities.reduce((map, e) => {
     map[e.hold_number] = e.id
     return map

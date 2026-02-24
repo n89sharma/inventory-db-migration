@@ -1,7 +1,8 @@
-import { PrismaClient } from '../../generated/prisma/client.js'
+import { PrismaClient, User } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { createManyEntities } from '../utils/utils.js'
 import { getRoleIdMap } from '../core/static.js'
+import { UserCreateInput, UserUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 //--------------------------------------------------------------------
 // (8) USER
@@ -25,11 +26,11 @@ interface UserRow extends RowDataPacket {
   email: string
 }
 
-const userMapper = (r: UserRow, memberId: number) => ({
+const userMapper = (r: UserRow, memberId: number): UserUncheckedCreateInput => ({
   username: r.username,
   name: r.name,
   email: r.email,
-  role: memberId
+  role_id: memberId
 })
 
 const userCreator = (prisma: PrismaClient, e: any) => prisma.user.createMany({ data: e })

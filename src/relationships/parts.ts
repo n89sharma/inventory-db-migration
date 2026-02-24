@@ -2,6 +2,7 @@ import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { getUserMap } from '../core/user.js'
 import { getAssetMap } from '../assets/asset.js'
+import { AssetPartUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const assetPartsQuery = `
     SELECT 
@@ -18,45 +19,45 @@ const assetPartsQuery = `
 `
 
 interface AssetPartRow extends RowDataPacket {
-    recipient: string,
-    donor: string,
-    updated_at: string,
-    updated_by: string,
-    notes: string
+  recipient: string,
+  donor: string,
+  updated_at: string,
+  updated_by: string,
+  notes: string
 }
 
 function assetPartMapper(
-    r: AssetPartRow,
-    assetMap: Record<string, number>,
-    userMap: Record<string, number>
-) {
-    return {
-        recipient_asset_id: assetMap[r.recipient],
-        donor_asset_id: assetMap[r.donor],
-        updated_at: new Date(r.updated_at),
-        updated_by: userMap[r.updated_by],
-        notes: r.notes
-    }
+  r: AssetPartRow,
+  assetMap: Record<string, number>,
+  userMap: Record<string, number>): AssetPartUncheckedCreateInput {
+
+  return {
+    recipient_asset_id: assetMap[r.recipient],
+    donor_asset_id: assetMap[r.donor],
+    updated_at: new Date(r.updated_at),
+    updated_by: userMap[r.updated_by],
+    notes: r.notes
+  }
 }
 
-const assetPartCreator = (prisma: PrismaClient, e:any) => prisma.assetPart.createMany({data: e})
+const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.assetPart.createMany({ data: e })
 
 export async function createAssetPartEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log(`fetching source entities.`)
-    const [results] = await con.query<AssetPartRow[]>(assetPartsQuery)
+  console.log(`fetching source entities.`)
+  const [results] = await con.query<AssetPartRow[]>(assetPartsQuery)
 
-    console.log('mapping')
-    const assetMap = await getAssetMap(prisma)
-    const userMap = await getUserMap(prisma)
+  console.log('mapping')
+  const assetMap = await getAssetMap(prisma)
+  const userMap = await getUserMap(prisma)
 
-    const mappedEntities = Array.from(results).map((r) => {
-        return assetPartMapper(r, assetMap, userMap)
-    }).filter((r) => !!r.recipient_asset_id)
+  const mappedEntities = Array.from(results).map((r) => {
+    return assetPartMapper(r, assetMap, userMap)
+  }).filter((r) => !!r.recipient_asset_id)
 
-    console.log('creating new entities')
-    await assetPartCreator(prisma, mappedEntities)
+  console.log('creating new entities')
+  await assetPartCreator(prisma, mappedEntities)
 
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }

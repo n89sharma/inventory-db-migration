@@ -2,6 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket } from 'mysql2/promise'
 import { Connection } from 'mysql2/promise'
 import { getBrandMap } from './brand.js'
+import { ErrorUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 //--------------------------------------------------------------------
 // (5) ERROR
@@ -22,42 +23,42 @@ const errorQuery = `
 `
 
 interface ErrorRow extends RowDataPacket {
-    brand_name: string,
-    code: string,
-    description: string,
-    category: string
+  brand_name: string,
+  code: string,
+  description: string,
+  category: string
 }
 
-const errorMapper = (r: ErrorRow, brandMap: Record<string, number>) => ({
-    brand_id: brandMap[r.brand_name],
-    code: r.code,
-    description: r.description,
-    category: r.category
+const errorMapper = (r: ErrorRow, brandMap: Record<string, number>): ErrorUncheckedCreateInput => ({
+  brand_id: brandMap[r.brand_name],
+  code: r.code,
+  description: r.description,
+  category: r.category
 })
 
-const errorCreator = (prisma: PrismaClient, e: any) => prisma.error.createMany({data: e})
+const errorCreator = (prisma: PrismaClient, e: any) => prisma.error.createMany({ data: e })
 
 export async function createErrorEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log('fetching source entities')
-    const [results] = await con.query<ErrorRow[]>(errorQuery)
-    
-    console.log('mapping')
-    const brandMap = await getBrandMap(prisma)
-    const mappedEntities = Array.from(results).map((r) => {
-        return errorMapper(r, brandMap)
-    }) 
-    
-    console.log('creating new entities')
-    await errorCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log('fetching source entities')
+  const [results] = await con.query<ErrorRow[]>(errorQuery)
+
+  console.log('mapping')
+  const brandMap = await getBrandMap(prisma)
+  const mappedEntities = Array.from(results).map((r) => {
+    return errorMapper(r, brandMap)
+  })
+
+  console.log('creating new entities')
+  await errorCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
 export async function getErrorMap(prisma: PrismaClient) {
   const rows = await prisma.error.findMany()
-  
+
   return rows.reduce((map, r) => {
     map[`${r.brand_id}:${r.code}`] = r.id
     return map

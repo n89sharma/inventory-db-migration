@@ -9,6 +9,7 @@ import { getHoldMap } from '../transfers/holds.js'
 import { getAssetTypeIdMap, getAvailabilityStatusIdMap, getTechnicalStatusIdMap, getTrackingStatusIdMap } from '../core/static.js'
 import { getBrandMap } from '../core/brand.js'
 import { getOrganizationMap } from '../core/organization.js'
+import { AssetUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const assetQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -96,7 +97,7 @@ function assetMapper(
   assetTypeMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
-  trackingStatusMap: Record<string, number>) {
+  trackingStatusMap: Record<string, number>): AssetUncheckedCreateInput {
 
   return {
     barcode: r.barcode,

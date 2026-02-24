@@ -2,6 +2,7 @@ import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getBrandMap } from './brand.js'
 import { getAssetTypeIdMap } from '../core/static.js'
+import { ModelUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const modelQuery = `
     SELECT
@@ -27,7 +28,7 @@ interface ModelRow extends RowDataPacket {
 const modelMapper = (
   r: ModelRow,
   assetTypeMap: Record<string, number>,
-  brandMap: Record<string, number>) => ({
+  brandMap: Record<string, number>): ModelUncheckedCreateInput => ({
 
     brand_id: brandMap[r.brand_name],
     name: r.model_name,

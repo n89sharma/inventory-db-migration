@@ -4,6 +4,7 @@ import { getAssetMap } from '../assets/asset.js'
 import { getErrorMap } from '../core/error.js'
 import { getUserMap } from '../core/user.js'
 import { getBrandMap } from '../core/brand.js'
+import { AssetErrorUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const errorQuery = `
     SELECT
@@ -29,52 +30,52 @@ const errorQuery = `
 `
 
 interface ErrorRow extends RowDataPacket {
-    barcode: string,
-    brand: string,
-    code: string,
-    is_fixed: boolean,
-    updated_on: string,
-    username: string
+  barcode: string,
+  brand: string,
+  code: string,
+  is_fixed: boolean,
+  updated_on: string,
+  username: string
 }
 
 function errorMapper(
-    r: ErrorRow,
-    assetMap: Record<string, number>,
-    userMap: Record<string, number>,
-    errorMap: Record<string, number>,
-    brandMap: Record<string, number>) {
-    
-    return {
-        asset_id: assetMap[r.barcode],
-        error_id: errorMap[`${brandMap[r.brand]}:${r.code}`],
-        is_fixed: !!r.is_fixed,
-        added_by: null,
-        added_at: null,
-        fixed_by: userMap[r.username] ? userMap[r.username] : null,
-        fixed_at: r.updated_on ? new Date(r.updated_on) : null
-    }
-    
+  r: ErrorRow,
+  assetMap: Record<string, number>,
+  userMap: Record<string, number>,
+  errorMap: Record<string, number>,
+  brandMap: Record<string, number>): AssetErrorUncheckedCreateInput {
+
+  return {
+    asset_id: assetMap[r.barcode],
+    error_id: errorMap[`${brandMap[r.brand]}:${r.code}`],
+    is_fixed: !!r.is_fixed,
+    added_by: null,
+    added_at: null,
+    fixed_by: userMap[r.username] ? userMap[r.username] : null,
+    fixed_at: r.updated_on ? new Date(r.updated_on) : null
+  }
+
 }
 
-const errorCreator = (prisma: PrismaClient, e: any) => prisma.assetError.createMany({data: e})
+const errorCreator = (prisma: PrismaClient, e: any) => prisma.assetError.createMany({ data: e })
 
 export async function createAssetErrorEntities(prisma: PrismaClient, con: Connection) {
-    console.log(`fetching source entities.`)
-    const [results] = await con.query<ErrorRow[]>(errorQuery)
-    
-    console.log('mapping')
-    const assetMap = await getAssetMap(prisma)
-    const userMap = await getUserMap(prisma)
-    const errorMap = await getErrorMap(prisma)
-    const brandMap = await getBrandMap(prisma)
+  console.log(`fetching source entities.`)
+  const [results] = await con.query<ErrorRow[]>(errorQuery)
 
-    const mappedEntities = Array.from(results).map((r) => {
-        return errorMapper(r, assetMap, userMap, errorMap, brandMap)
-    }).filter((r) => !!r.asset_id)
+  console.log('mapping')
+  const assetMap = await getAssetMap(prisma)
+  const userMap = await getUserMap(prisma)
+  const errorMap = await getErrorMap(prisma)
+  const brandMap = await getBrandMap(prisma)
 
-    console.log('creating new entities')
-    await errorCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  const mappedEntities = Array.from(results).map((r) => {
+    return errorMapper(r, assetMap, userMap, errorMap, brandMap)
+  }).filter((r) => !!r.asset_id)
+
+  console.log('creating new entities')
+  await errorCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
