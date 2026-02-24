@@ -1,6 +1,7 @@
-import { PrismaClient, Role } from '../../generated/prisma/client.js'
+import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { createManyEntities } from '../utils/utils.js'
+import { getRoleIdMap } from '../core/static.js'
 
 //--------------------------------------------------------------------
 // (8) USER
@@ -19,27 +20,34 @@ const userQuery = `
 `
 
 interface UserRow extends RowDataPacket {
-    username: string,
-    name: string,
-    email: string
+  username: string,
+  name: string,
+  email: string
 }
 
-const userMapper = (r: UserRow) => ({
-    username: r.username,
-    name: r.name,
-    email: r.email,
-    role: Role.MEMBER
+const userMapper = (r: UserRow, memberId: number) => ({
+  username: r.username,
+  name: r.name,
+  email: r.email,
+  role: memberId
 })
 
-const userCreator = (prisma: PrismaClient, e: any) => prisma.user.createMany({data: e})
+const userCreator = (prisma: PrismaClient, e: any) => prisma.user.createMany({ data: e })
 
 export async function createUserEntities(prisma: PrismaClient, con: Connection) {
-    return await createManyEntities(prisma, con, userQuery, userMapper, userCreator)
+  const roleMap = await getRoleIdMap(prisma)
+  return await createManyEntities(
+    prisma,
+    con,
+    userQuery,
+    (r: UserRow) => userMapper(r, roleMap['MEMBER']),
+    userCreator
+  )
 }
 
 export async function getUserMap(prisma: PrismaClient) {
   const users = await prisma.user.findMany()
-  
+
   return users.reduce((map, user) => {
     map[user.username.toUpperCase()] = user.id
     return map

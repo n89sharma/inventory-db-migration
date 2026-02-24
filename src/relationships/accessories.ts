@@ -1,9 +1,9 @@
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
-import { accessoryMap } from '../utils/enummaps.js'
+import { getAccessoryIdMap } from '../core/static.js'
 import { getAssetMap } from '../assets/asset.js'
 
-const accessoriesQuery =(floor: number, ceiling: number) => `
+const accessoriesQuery = (floor: number, ceiling: number) => `
     SELECT
         TRIM(i.barcode) AS barcode,
         UPPER(TRIM(a.name)) AS accessory
@@ -15,53 +15,56 @@ const accessoriesQuery =(floor: number, ceiling: number) => `
 `
 
 interface AccessoryRow extends RowDataPacket {
-    barcode: string,
-    accessory: string
+  barcode: string,
+  accessory: string
 }
 
 function accessoryMapper(
-    r: AccessoryRow, 
-    assetMap: Record<string, number>) {
+  r: AccessoryRow,
+  assetMap: Record<string, number>,
+  accessoryMap: Record<string, number>) {
 
-    return {
-        asset_id: assetMap[r.barcode],
-        accessory: accessoryMap[r.accessory]
-    }
+  return {
+    asset_id: assetMap[r.barcode],
+    accessory: accessoryMap[r.accessory]
+  }
 }
 
-const accessoryCreator = (prisma: PrismaClient, e: any) => prisma.assetAccessory.createMany({data: e})
+const accessoryCreator = (prisma: PrismaClient, e: any) => prisma.assetAccessory.createMany({ data: e })
 
 async function createAccessoriesBatch(
-    prisma: PrismaClient, 
-    con: Connection, 
-    floor: number, 
-    ceiling: number,
-    assetMap: Record<string, number>) {
+  prisma: PrismaClient,
+  con: Connection,
+  floor: number,
+  ceiling: number,
+  assetMap: Record<string, number>,
+  accessoryMap: Record<string, number>) {
 
-    console.log(`fetching source entities. ${floor} - ${ceiling}`)
-    const [results] = await con.query<AccessoryRow[]>(accessoriesQuery(floor, ceiling))
-    
-    console.log('mapping')
-    const mappedEntities = Array.from(results).map((r) => {
-        return accessoryMapper(r, assetMap)
-    }).filter((r) => !!r.asset_id)
+  console.log(`fetching source entities. ${floor} - ${ceiling}`)
+  const [results] = await con.query<AccessoryRow[]>(accessoriesQuery(floor, ceiling))
 
-    console.log('creating new entities')
-    await accessoryCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log('mapping')
+  const mappedEntities = Array.from(results).map((r) => {
+    return accessoryMapper(r, assetMap, accessoryMap)
+  }).filter((r) => !!r.asset_id)
+
+  console.log('creating new entities')
+  await accessoryCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
-export async function createAssetAccessories(prisma: PrismaClient, con: Connection){
+export async function createAssetAccessories(prisma: PrismaClient, con: Connection) {
 
-    const start = 0
-    const step = 100000
-    const assetMap = await getAssetMap(prisma)
+  const start = 0
+  const step = 100000
+  const assetMap = await getAssetMap(prisma)
+  const accessoryMap = await getAccessoryIdMap(prisma)
 
-    for(let i=start; i<1700000; i=i+step) {
-        let floor = i + 1
-        let ceiling = i + step
-        await createAccessoriesBatch(prisma, con, floor, ceiling, assetMap)
-    }
+  for (let i = start; i < 1700000; i = i + step) {
+    let floor = i + 1
+    let ceiling = i + step
+    await createAccessoriesBatch(prisma, con, floor, ceiling, assetMap, accessoryMap)
+  }
 }

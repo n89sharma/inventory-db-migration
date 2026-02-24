@@ -1,8 +1,7 @@
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { AssetType } from '../../generated/prisma/enums.js'
 import { RowDataPacket, Connection } from 'mysql2/promise'
 import { getBrandMap } from './brand.js'
-import { assetTypeMap } from '../utils/enummaps.js'
+import { getAssetTypeIdMap } from '../core/static.js'
 
 const modelQuery = `
     SELECT
@@ -18,48 +17,49 @@ const modelQuery = `
 `
 
 interface ModelRow extends RowDataPacket {
-    brand_name: string,
-    model_name: string,
-    asset_type: AssetType,
-    weight: string,
-    size: string
+  brand_name: string,
+  model_name: string,
+  asset_type: string,
+  weight: string,
+  size: string
 }
 
 const modelMapper = (
-    r: ModelRow, 
-    assetTypeMap: Record<string, AssetType>,
-    brandMap: Record<string, number>) => ({
+  r: ModelRow,
+  assetTypeMap: Record<string, number>,
+  brandMap: Record<string, number>) => ({
 
     brand_id: brandMap[r.brand_name],
     name: r.model_name,
-    asset_type: assetTypeMap[r.asset_type],
+    asset_type_id: assetTypeMap[r.asset_type],
     weight: parseFloat(r.weight) || 0,
     size: parseFloat(r.size) || 0
-})
+  })
 
-const modelCreator = (prisma: PrismaClient, e: any) => prisma.model.createMany({data: e})
+const modelCreator = (prisma: PrismaClient, e: any) => prisma.model.createMany({ data: e })
 
 export async function createModelEntities(prisma: PrismaClient, con: Connection) {
 
-    console.log('fetching source entities')
-    const [results] = await con.query<ModelRow[]>(modelQuery)
-    
-    console.log('mapping')
-    const brandMap = await getBrandMap(prisma)
-    const mappedEntities = Array.from(results).map((r) => {
-        return modelMapper(r, assetTypeMap, brandMap)
-    }) 
-    
-    console.log('creating new entities')
-    await modelCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log('fetching source entities')
+  const [results] = await con.query<ModelRow[]>(modelQuery)
+
+  console.log('mapping')
+  const brandMap = await getBrandMap(prisma)
+  const assetTypeMap = await getAssetTypeIdMap(prisma)
+  const mappedEntities = Array.from(results).map((r) => {
+    return modelMapper(r, assetTypeMap, brandMap)
+  })
+
+  console.log('creating new entities')
+  await modelCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
 export async function getModelMap(prisma: PrismaClient) {
   const entities = await prisma.model.findMany()
-  
+
   return entities.reduce((map, e) => {
     map[`${e.brand_id}:${e.name}`] = e.id
     return map

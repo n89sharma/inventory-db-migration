@@ -6,7 +6,7 @@ import { getInvoiceMap } from '../transfers/invoices.js'
 import { getArrivalMap, getOriginalArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
-import { assetTypeMap, availabilityStatusMap, technicalStatusMap, trackingStatusMap } from '../utils/enummaps.js'
+import { getAssetTypeIdMap, getAvailabilityStatusIdMap, getTechnicalStatusIdMap, getTrackingStatusIdMap } from '../core/static.js'
 import { getBrandMap } from '../core/brand.js'
 import { getOrganizationMap } from '../core/organization.js'
 
@@ -56,151 +56,168 @@ const assetQuery = (floor: number, ceiling: number) => `
 `
 
 interface AssetRow extends RowDataPacket {
-    barcode: string,
-    serial_number: string,
-    brand: string,
-    model: string,
-    code: string,
-    street: string,
+  barcode: string,
+  serial_number: string,
+  brand: string,
+  model: string,
+  code: string,
+  street: string,
 
-    location_code: string,
-    location_street: string,
-    location: string,
+  location_code: string,
+  location_street: string,
+  location: string,
 
-    asset_type: string,
-    status: string,
-    technical_status: string,
+  asset_type: string,
+  status: string,
+  technical_status: string,
 
-    purchase_invoice_number: string,
-    arrival_vendor_account_number: string,
-    sales_invoice_number: string,
-    departure_customer_account_number: string,
-    arrival_number: string,
-    departure_number: string,
-    hold_number: string,
+  purchase_invoice_number: string,
+  arrival_vendor_account_number: string,
+  sales_invoice_number: string,
+  departure_customer_account_number: string,
+  arrival_number: string,
+  departure_number: string,
+  hold_number: string,
 
-    created_at: string
+  created_at: string
 }
 
 function assetMapper(
-    r: AssetRow, 
-    brandMap: Record<string, number>,
-    modelMap: Record<string, number>,
-    warehouseMap: Record<string, number>,
-    invoiceMap: Record<string, number>,
-    arrivalMap: Record<string, number>,
-    departureMap: Record<string, number>,
-    holdMap: Record<string, number>,
-    originalArrivalMap: Record<string, string>,
-    orgMap: Record<string, number>
-) {
+  r: AssetRow,
+  brandMap: Record<string, number>,
+  modelMap: Record<string, number>,
+  warehouseMap: Record<string, number>,
+  invoiceMap: Record<string, number>,
+  arrivalMap: Record<string, number>,
+  departureMap: Record<string, number>,
+  holdMap: Record<string, number>,
+  originalArrivalMap: Record<string, string>,
+  orgMap: Record<string, number>,
+  assetTypeMap: Record<string, number>,
+  availabilityStatusMap: Record<string, number>,
+  technicalStatusMap: Record<string, number>,
+  trackingStatusMap: Record<string, number>) {
 
-    return {
-        barcode: r.barcode,
-        serial_number: r.serial_number,
-        model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
-        warehouse_id: warehouseMap[`${r.location_code}:${r.location_street}`],
-        asset_location: r.location,
-        asset_type: assetTypeMap[r.asset_type],
-        tracking_status: trackingStatusMap[r.status],
-        availability_status: availabilityStatusMap[r.status],
-        technical_status: technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : TechnicalStatus.NOT_TESTED,
-        purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
-        sales_invoice_id: null,
-        arrival_id:  arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
-        departure_id: departureMap[r.departure_number],
-        hold_id: holdMap[r.hold_number],
-        created_at: new Date(r.created_at),
-        is_held: !!holdMap[r.hold_number]
-    }
+  return {
+    barcode: r.barcode,
+    serial_number: r.serial_number,
+    model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
+    warehouse_id: warehouseMap[`${r.location_code}:${r.location_street}`],
+    asset_location: r.location,
+    asset_type_id: assetTypeMap[r.asset_type],
+    tracking_status_id: trackingStatusMap[r.status],
+    availability_status_id: availabilityStatusMap[r.status],
+    technical_status_id: technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['NOT_TESTED'],
+    purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
+    sales_invoice_id: null,
+    arrival_id: arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
+    departure_id: departureMap[r.departure_number],
+    hold_id: holdMap[r.hold_number],
+    created_at: new Date(r.created_at),
+    is_held: !!holdMap[r.hold_number]
+  }
 }
 
-const assetCreator = (prisma: PrismaClient, e: any) => prisma.asset.createMany({data: e})
+const assetCreator = (prisma: PrismaClient, e: any) => prisma.asset.createMany({ data: e })
 
 async function createAssetEntitiesBatch(
-    prisma: PrismaClient, 
-    con: Connection, 
-    floor: number, 
-    ceiling: number,
-    brandMap: Record<string, number>,
-    modelMap: Record<string, number>,
-    warehouseMap: Record<string, number>,
-    invoiceMap: Record<string, number>,
-    arrivalMap: Record<string, number>,
-    departureMap: Record<string, number>,
-    holdMap: Record<string, number>,
-    originalArrivalMap: Record<string, string>,
-    orgMap: Record<string, number>) {
+  prisma: PrismaClient,
+  con: Connection,
+  floor: number,
+  ceiling: number,
+  brandMap: Record<string, number>,
+  modelMap: Record<string, number>,
+  warehouseMap: Record<string, number>,
+  invoiceMap: Record<string, number>,
+  arrivalMap: Record<string, number>,
+  departureMap: Record<string, number>,
+  holdMap: Record<string, number>,
+  originalArrivalMap: Record<string, string>,
+  orgMap: Record<string, number>,
+  assetTypeMap: Record<string, number>,
+  availabilityStatusMap: Record<string, number>,
+  technicalStatusMap: Record<string, number>,
+  trackingStatusMap: Record<string, number>) {
 
-    console.log(`fetching source entities. ${floor} - ${ceiling}`)
-    const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
-    
-    console.log('mapping')
-    
-    const mappedEntities = Array.from(results).map((r) => {
-        return assetMapper(
-            r,
-            brandMap,
-            modelMap, 
-            warehouseMap,
-            invoiceMap,
-            arrivalMap,
-            departureMap,
-            holdMap,
-            originalArrivalMap,
-            orgMap
-        )
-    }) 
+  console.log(`fetching source entities. ${floor} - ${ceiling}`)
+  const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
 
-    console.log('creating new entities')
-    await assetCreator(prisma, mappedEntities)
-    
-    console.log(`done. ${mappedEntities.length} created`)
-    return mappedEntities.length
+  console.log('mapping')
+
+  const mappedEntities = Array.from(results).map((r) => {
+    return assetMapper(
+      r,
+      brandMap,
+      modelMap,
+      warehouseMap,
+      invoiceMap,
+      arrivalMap,
+      departureMap,
+      holdMap,
+      originalArrivalMap,
+      orgMap,
+      assetTypeMap,
+      availabilityStatusMap,
+      technicalStatusMap,
+      trackingStatusMap
+    )
+  })
+
+  console.log('creating new entities')
+  await assetCreator(prisma, mappedEntities)
+
+  console.log(`done. ${mappedEntities.length} created`)
+  return mappedEntities.length
 }
 
-export async function createAssetEntities(prisma: PrismaClient, con: Connection){
+export async function createAssetEntities(prisma: PrismaClient, con: Connection) {
 
-    const brandMap = await getBrandMap(prisma)
-    const modelMap = await getModelMap(prisma)
-    const warehouseMap = await getWarehouseMap(prisma)
-    const invoiceMap = await getInvoiceMap(prisma)
-    const arrivalMap = await getArrivalMap(prisma)
-    const departureMap = await getDepartureMap(prisma)
-    const holdMap = await getHoldMap(prisma)
-    const originalArrivalMap = await getOriginalArrivalMap(con)
-    const orgMap = await getOrganizationMap(prisma)
+  const brandMap = await getBrandMap(prisma)
+  const modelMap = await getModelMap(prisma)
+  const warehouseMap = await getWarehouseMap(prisma)
+  const invoiceMap = await getInvoiceMap(prisma)
+  const arrivalMap = await getArrivalMap(prisma)
+  const departureMap = await getDepartureMap(prisma)
+  const holdMap = await getHoldMap(prisma)
+  const originalArrivalMap = await getOriginalArrivalMap(con)
+  const orgMap = await getOrganizationMap(prisma)
+  const assetTypeMap = await getAssetTypeIdMap(prisma)
+  const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
+  const technicalStatusMap = await getTechnicalStatusIdMap(prisma)
+  const trackingStatusMap = await getTechnicalStatusIdMap(prisma)
 
-    const start = 0
-    const step = 50000
-    for(let i=start; i<=500000; i=i+step) {
-        let floor = i + 1
-        let ceiling = i + step
-        await createAssetEntitiesBatch(
-            prisma, 
-            con,
-            floor, 
-            ceiling,
-            brandMap,
-            modelMap,
-            warehouseMap,
-            invoiceMap,
-            arrivalMap,
-            departureMap,
-            holdMap,
-            originalArrivalMap,
-            orgMap
-        )
-    }
+  const start = 0
+  const step = 50000
+  for (let i = start; i <= 500000; i = i + step) {
+    let floor = i + 1
+    let ceiling = i + step
+    await createAssetEntitiesBatch(
+      prisma,
+      con,
+      floor,
+      ceiling,
+      brandMap,
+      modelMap,
+      warehouseMap,
+      invoiceMap,
+      arrivalMap,
+      departureMap,
+      holdMap,
+      originalArrivalMap,
+      orgMap,
+      assetTypeMap,
+      availabilityStatusMap,
+      technicalStatusMap,
+      trackingStatusMap
+    )
+  }
 }
 
 export async function getAssetMap(prisma: PrismaClient) {
-    const entities = await prisma.asset.findMany()
-  
-    return entities.reduce((map, e) => {
+  const entities = await prisma.asset.findMany()
+
+  return entities.reduce((map, e) => {
     map[e.barcode] = e.id
     return map
-    }, {} as Record<string, number>)
+  }, {} as Record<string, number>)
 }
-
-
