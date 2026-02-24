@@ -108,7 +108,7 @@ function assetMapper(
     asset_type_id: assetTypeMap[r.asset_type],
     tracking_status_id: trackingStatusMap[r.status],
     availability_status_id: availabilityStatusMap[r.status],
-    technical_status_id: technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['NOT_TESTED'],
+    technical_status_id: !!technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['Not Tested'],
     purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
     sales_invoice_id: null,
     arrival_id: arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
@@ -185,7 +185,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const assetTypeMap = await getAssetTypeIdMap(prisma)
   const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
   const technicalStatusMap = await getTechnicalStatusIdMap(prisma)
-  const trackingStatusMap = await getTechnicalStatusIdMap(prisma)
+  const trackingStatusMap = await getTrackingStatusIdMap(prisma)
 
   const start = 0
   const step = 50000

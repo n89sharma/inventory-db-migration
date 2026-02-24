@@ -21,7 +21,6 @@ import { createAssetErrorEntities } from './relationships/errors.js'
 import { createAssetAccessories } from './relationships/accessories.js'
 import { createAssetTransferEntities } from './relationships/transfers.js'
 import { createAssetPartEntities } from './relationships/parts.js'
-import { createStaticTables } from './core/static.js'
 import { PrismaClient } from '../generated/prisma/client.js'
 
 const con = await mysql.createConnection({
@@ -32,12 +31,8 @@ const con = await mysql.createConnection({
   port: parseInt(process.env.DB_PORT!)
 })
 
-async function fullRun(prisma: PrismaClient, con: Connection) {
-  //==================================================================
+async function firstHalf(prisma: PrismaClient, con: Connection) {
   //Phase 1: Create reference data
-  console.log('\n static tables----------')
-  await createStaticTables(prisma)
-
   console.log('\nbrands----------')
   await createBrandEntities(prisma, con)          //1 - 86
 
@@ -68,7 +63,6 @@ async function fullRun(prisma: PrismaClient, con: Connection) {
   //assets in 2014
   await createUserEntities(prisma, con)           //8 - 299
 
-  //==================================================================
   // Phase 2: Create transactions
   console.log('\narrival----------')
   await createArrivalEntities(prisma, con)    //9 - 34,906/ 34,917/ 37,679
@@ -86,8 +80,9 @@ async function fullRun(prisma: PrismaClient, con: Connection) {
   //sales invoices have not been added as certain entries conflict
   //with purchase invoice
   await createInvoiceEntities(prisma, con)    //13 - 37,357/ 40,551
+}
 
-  //==================================================================
+async function secondHalf(prisma: PrismaClient, con: Connection) {
   // Phase 3: Create assets (depends on everything above)                           
   console.log('\nasset----------')
   await createAssetEntities(prisma, con)      //14 - 450,219/450,227
@@ -102,7 +97,6 @@ async function fullRun(prisma: PrismaClient, con: Connection) {
   //88 assets were added within feb5-7, 3 are from 2024. rest exist
   await createCommentEntities(prisma, con)  //15 - 380,295/ 380,395
 
-  //==================================================================
   // Phase 4: Create relationships
   console.log('\n asset accessories----------')
   await createAssetAccessories(prisma, con)
@@ -119,7 +113,11 @@ async function fullRun(prisma: PrismaClient, con: Connection) {
 
 async function main() {
 
-  await fullRun(prisma, con)
+  // console.log('\n static tables----------')
+  // await createStaticTables(prisma)
+
+  // await firstHalf(prisma, con)
+  await secondHalf(prisma, con)
 
   return 0
 }
