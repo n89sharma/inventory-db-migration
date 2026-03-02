@@ -377,6 +377,7 @@ model Warehouse {
   id                    Int         @id @default(autoincrement())
   city_code             String      @db.Char(3)
   street                String      @db.Text
+  is_active             Boolean     @default(false)
   assets                Asset[]
   origin_transfers      Transfer[]  @relation("TransferOrigin")
   destination_transfers Transfer[]  @relation("TransferDestination")
