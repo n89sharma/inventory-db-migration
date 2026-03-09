@@ -23,7 +23,6 @@ model Accessory {
 model AssetType {
   id         Int     @id @default(autoincrement())
   asset_type String  @unique
-  assets     Asset[]
   models     Model[]
 }
 
@@ -84,7 +83,6 @@ model Asset {
   warehouse_id   Int?
   asset_location String? @db.VarChar(50)
 
-  asset_type_id          Int
   tracking_status_id     Int
   availability_status_id Int
   technical_status_id    Int
@@ -107,7 +105,6 @@ model Asset {
   arrival             Arrival?           @relation(fields: [arrival_id], references: [id])
   departure           Departure?         @relation(fields: [departure_id], references: [id])
   hold                Hold?              @relation(fields: [hold_id], references: [id])
-  asset_type          AssetType          @relation(fields: [asset_type_id], references: [id])
   tracking_status     TrackingStatus     @relation(fields: [tracking_status_id], references: [id])
   availability_status AvailabilityStatus @relation(fields: [availability_status_id], references: [id])
   technical_status    TechnicalStatus    @relation(fields: [technical_status_id], references: [id])
@@ -124,7 +121,6 @@ model Asset {
   @@index([model_id])
   @@index([warehouse_id])
   @@index([asset_location])
-  @@index([asset_type_id])
   @@index([tracking_status_id])
   @@index([availability_status_id])
   @@index([technical_status_id])

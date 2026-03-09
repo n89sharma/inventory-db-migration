@@ -25,7 +25,6 @@ const assetQuery = (floor: number, ceiling: number) => `
         TRIM(p.name) AS location,
 
         -- TYPE AND STATUS ENUMS
-        TRIM(t.name) AS asset_type,
         TRIM(s.name) AS status,
         TRIM(ts.name) AS technical_status,
 
@@ -43,7 +42,6 @@ const assetQuery = (floor: number, ceiling: number) => `
     JOIN model m USING(model_id)
     JOIN brand b ON b.brand_id=m.brand_id
     JOIN warehouse w USING(warehouse_id)
-    JOIN asset_type t ON t.asset_type_id = i.asset_type_id
     JOIN status s USING(status_id)
     LEFT JOIN inventory_location p USING(position_id)
     LEFT JOIN warehouse pw ON pw.warehouse_id = p.warehouse_id
@@ -68,7 +66,6 @@ interface AssetRow extends RowDataPacket {
   location_street: string,
   location: string,
 
-  asset_type: string,
   status: string,
   technical_status: string,
 
@@ -94,7 +91,6 @@ function assetMapper(
   holdMap: Record<string, number>,
   originalArrivalMap: Record<string, string>,
   orgMap: Record<string, number>,
-  assetTypeMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
   trackingStatusMap: Record<string, number>): AssetUncheckedCreateInput {
@@ -105,7 +101,6 @@ function assetMapper(
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
     warehouse_id: warehouseMap[`${r.location_code}:${r.location_street}`],
     asset_location: r.location,
-    asset_type_id: assetTypeMap[r.asset_type],
     tracking_status_id: trackingStatusMap[r.status],
     availability_status_id: availabilityStatusMap[r.status],
     technical_status_id: !!technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['Not Tested'],
@@ -135,7 +130,6 @@ async function createAssetEntitiesBatch(
   holdMap: Record<string, number>,
   originalArrivalMap: Record<string, string>,
   orgMap: Record<string, number>,
-  assetTypeMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
   trackingStatusMap: Record<string, number>) {
@@ -157,7 +151,6 @@ async function createAssetEntitiesBatch(
       holdMap,
       originalArrivalMap,
       orgMap,
-      assetTypeMap,
       availabilityStatusMap,
       technicalStatusMap,
       trackingStatusMap
@@ -182,7 +175,6 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const holdMap = await getHoldMap(prisma)
   const originalArrivalMap = await getOriginalArrivalMap(con)
   const orgMap = await getOrganizationMap(prisma)
-  const assetTypeMap = await getAssetTypeIdMap(prisma)
   const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
   const technicalStatusMap = await getTechnicalStatusIdMap(prisma)
   const trackingStatusMap = await getTrackingStatusIdMap(prisma)
@@ -206,7 +198,6 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       holdMap,
       originalArrivalMap,
       orgMap,
-      assetTypeMap,
       availabilityStatusMap,
       technicalStatusMap,
       trackingStatusMap
