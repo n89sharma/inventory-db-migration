@@ -47,3 +47,12 @@ export async function createLocationEntities(prisma: PrismaClient, con: Connecti
   console.log(`done. ${mappedEntities.length} created`)
   return mappedEntities.length
 }
+
+export async function getLocationMap(prisma: PrismaClient) {
+  const rows = await prisma.location.findMany()
+
+  return rows.reduce((map, l) => {
+    map[`${l.warehouse_id}:${l.location}`] = l.id
+    return map
+  }, {} as Record<string, number>)
+}

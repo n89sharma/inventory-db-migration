@@ -10,6 +10,7 @@ import { getAssetTypeIdMap, getAvailabilityStatusIdMap, getTechnicalStatusIdMap,
 import { getBrandMap } from '../core/brand.js'
 import { getOrganizationMap } from '../core/organization.js'
 import { AssetUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getLocationMap } from '../core/location.js'
 
 const assetQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -93,14 +94,14 @@ function assetMapper(
   orgMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
-  trackingStatusMap: Record<string, number>): AssetUncheckedCreateInput {
+  trackingStatusMap: Record<string, number>,
+  locationMap: Record<string, number>): AssetUncheckedCreateInput {
 
   return {
     barcode: r.barcode,
     serial_number: r.serial_number,
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
-    warehouse_id: warehouseMap[`${r.location_code}:${r.location_street}`],
-    asset_location: r.location,
+    location_id: locationMap[`${warehouseMap[`${r.location_code}:${r.location_street}`]}:${r.location}`],
     tracking_status_id: trackingStatusMap[r.status],
     availability_status_id: availabilityStatusMap[r.status],
     technical_status_id: !!technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['Not Tested'],
@@ -132,7 +133,8 @@ async function createAssetEntitiesBatch(
   orgMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
-  trackingStatusMap: Record<string, number>) {
+  trackingStatusMap: Record<string, number>,
+  locationMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
   const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
@@ -153,7 +155,8 @@ async function createAssetEntitiesBatch(
       orgMap,
       availabilityStatusMap,
       technicalStatusMap,
-      trackingStatusMap
+      trackingStatusMap,
+      locationMap
     )
   })
 
@@ -178,6 +181,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
   const technicalStatusMap = await getTechnicalStatusIdMap(prisma)
   const trackingStatusMap = await getTrackingStatusIdMap(prisma)
+  const locationMap = await getLocationMap(prisma)
 
   const start = 0
   const step = 50000
@@ -200,7 +204,8 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       orgMap,
       availabilityStatusMap,
       technicalStatusMap,
-      trackingStatusMap
+      trackingStatusMap,
+      locationMap
     )
   }
 }
