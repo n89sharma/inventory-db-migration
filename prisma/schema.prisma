@@ -450,13 +450,14 @@ model Comment {
 }
 
 model User {
-  id       Int     @id @default(autoincrement())
-  username String  @unique @db.Text
-  email    String  @db.Text
-  name     String  @db.Text
-  googleId String? @unique @db.Text
-  role_id  Int
-  role     Role    @relation(fields: [role_id], references: [id])
+  id        Int     @id @default(autoincrement())
+  username  String  @unique @db.Text
+  email     String  @db.Text
+  name      String  @db.Text
+  googleId  String? @unique @db.Text
+  role_id   Int
+  is_active Boolean @default(false)
+  role      Role    @relation(fields: [role_id], references: [id])
 
   asset_errors_added   AssetError[]   @relation("ErrorAddedBy")
   asset_errors_fixed   AssetError[]   @relation("ErrorFixedBy")
