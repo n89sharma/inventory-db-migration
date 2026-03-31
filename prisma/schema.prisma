@@ -277,7 +277,7 @@ model Arrival {
   id             Int      @id @default(autoincrement())
   arrival_number String   @unique @db.VarChar(50)
   origin_id      Int
-  destination_id Int?
+  destination_id Int
   transporter_id Int
   created_by_id  Int?
   notes          String?  @db.Text
