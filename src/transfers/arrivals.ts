@@ -1,9 +1,9 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getOrganizationMap } from '../core/organization.js'
-import { getWarehouseMap } from '../core/warehouse.js'
-import { getUserMap } from '../core/user.js'
 import { ArrivalUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getOrganizationMap } from '../core/organization.js'
+import { getUserMap } from '../core/user.js'
+import { getWarehouseMap } from '../core/warehouse.js'
 
 //--------------------------------------------------------------------
 // (9) ARRIVAL
@@ -21,7 +21,7 @@ const arrivalQuery = `
     FROM arrival a
     JOIN customer v ON a.vendor_id = v.customer_id
     JOIN customer t ON a.transporter_id = t.customer_id
-    LEFT JOIN warehouse w ON a.warehouse_id = w.warehouse_id
+    JOIN warehouse w ON a.warehouse_id = w.warehouse_id
     LEFT JOIN user u ON u.user_id = a.added_by
     WHERE 
         vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653,4535)

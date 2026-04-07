@@ -23,7 +23,12 @@ const techSpecQuery = (floor: number, ceiling: number) => `
         CAST(drum_life_Y AS UNSIGNED) AS drum_life_y,
         CAST(drum_life_K AS UNSIGNED) AS drum_life_k
     FROM inventory
-    WHERE inventory_id BETWEEN ${floor} AND ${ceiling}
+    WHERE 
+      inventory_id BETWEEN ${floor} AND ${ceiling}
+      AND ((meter_k=1 AND meter_color < 2147483) OR (meter_k=0 AND meter_color < 2147483647))
+      AND ((meter_k=1 AND meter_black < 2147483) OR (meter_k=0 AND meter_black < 2147483647))
+      AND ((meter_k=1 AND (meter_black + meter_color) < 2147483) OR (meter_k=0 AND (meter_black + meter_color) < 2147483647))
+
 `
 
 interface TechSpecRow extends RowDataPacket {

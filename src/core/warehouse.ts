@@ -1,7 +1,7 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { createManyEntities } from '../utils/utils.js'
 import { WarehouseUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { createManyEntities } from '../utils/utils.js'
 
 //--------------------------------------------------------------------
 // (3) WAREHOUSE
@@ -9,18 +9,21 @@ import { WarehouseUncheckedCreateInput } from '../../generated/prisma/models.js'
 const warehouseQuery = `
     SELECT
         city_alias AS city_code,
-        name AS street
+        name AS street,
+        status AS is_active
     FROM warehouse
 `
 
 interface WarehouseRow extends RowDataPacket {
   city_code: string,
-  street: string
+  street: string,
+  is_active: number
 }
 
 const warehouseMapper = (r: WarehouseRow): WarehouseUncheckedCreateInput => ({
   city_code: r.city_code,
-  street: r.street
+  street: r.street,
+  is_active: !!r.is_active
 })
 
 const warehouseCreator = (prisma: PrismaClient, e: any) => prisma.warehouse.createMany({ data: e })

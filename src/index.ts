@@ -1,27 +1,28 @@
-import { prisma } from './prisma.js'
 import mysql, { Connection } from 'mysql2/promise'
-import { createModelEntities } from './core/model.js'
+import { PrismaClient } from '../generated/prisma/client.js'
+import { createAssetEntities } from './assets/asset.js'
+import { createCommentEntities } from './assets/comment.js'
+import { createCostEntities } from './assets/cost.js'
+import { createTechSpecEntities } from './assets/techspecs.js'
 import { createBrandEntities } from './core/brand.js'
-import { createWarehouseEntities } from './core/warehouse.js'
-import { createLocationEntities } from './core/location.js'
-import { createPartEntities } from './core/part.js'
-import { createOrganizationEntities } from './core/organization.js'
 import { createErrorEntities } from './core/error.js'
+import { createLocationEntities } from './core/location.js'
+import { createModelEntities } from './core/model.js'
+import { createOrganizationEntities } from './core/organization.js'
+import { createPartEntities } from './core/part.js'
+import { createStaticTables as createReferenceDataTables } from './core/static.js'
 import { createUserEntities } from './core/user.js'
+import { createWarehouseEntities } from './core/warehouse.js'
+import { prisma } from './prisma.js'
+import { createAssetAccessories } from './relationships/accessories.js'
+import { createAssetErrorEntities } from './relationships/errors.js'
+import { createAssetPartEntities } from './relationships/parts.js'
+import { createAssetTransferEntities } from './relationships/transfers.js'
 import { createArrivalEntities } from './transfers/arrivals.js'
 import { createDepartureEntities } from './transfers/departures.js'
-import { createTransferEntities } from './transfers/transfers.js'
 import { createHoldEntities } from './transfers/holds.js'
 import { createInvoiceEntities } from './transfers/invoices.js'
-import { createAssetEntities } from './assets/asset.js'
-import { createTechSpecEntities } from './assets/techspecs.js'
-import { createCostEntities } from './assets/cost.js'
-import { createCommentEntities } from './assets/comment.js'
-import { createAssetErrorEntities } from './relationships/errors.js'
-import { createAssetAccessories } from './relationships/accessories.js'
-import { createAssetTransferEntities } from './relationships/transfers.js'
-import { createAssetPartEntities } from './relationships/parts.js'
-import { PrismaClient } from '../generated/prisma/client.js'
+import { createTransferEntities } from './transfers/transfers.js'
 
 const con = await mysql.createConnection({
   host: process.env.DB_HOST,
@@ -113,10 +114,10 @@ async function secondHalf(prisma: PrismaClient, con: Connection) {
 
 async function main() {
 
-  // console.log('\n static tables----------')
-  // await createStaticTables(prisma)
+  console.log('\n static tables----------')
+  await createReferenceDataTables(prisma)
 
-  // await firstHalf(prisma, con)
+  await firstHalf(prisma, con)
   await secondHalf(prisma, con)
 
   return 0

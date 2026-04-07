@@ -15,7 +15,8 @@ const userQuery = `
             ELSE UPPER(TRIM(user_name))
         END AS username,
         MAX(TRIM(NAME)) AS name,
-        MAX(TRIM(email)) AS email
+        MAX(TRIM(email)) AS email,
+        MAX(status) AS is_active
     FROM user
     GROUP BY 1
 `
@@ -23,14 +24,16 @@ const userQuery = `
 interface UserRow extends RowDataPacket {
   username: string,
   name: string,
-  email: string
+  email: string,
+  is_active: number
 }
 
 const userMapper = (r: UserRow, memberId: number): UserUncheckedCreateInput => ({
   username: r.username,
   name: r.name,
   email: r.email,
-  role_id: memberId
+  role_id: memberId,
+  is_active: !!r.is_active
 })
 
 const userCreator = (prisma: PrismaClient, e: any) => prisma.user.createMany({ data: e })
