@@ -1,8 +1,8 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getAccessoryIdMap } from '../core/static.js'
-import { getAssetMap } from '../assets/asset.js'
 import { AssetAccessoryUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getAssetMap } from '../assets/asset.js'
+import { getAccessoryIdMap } from '../core/referenceData.js'
 
 const accessoriesQuery = (floor: number, ceiling: number) => `
     SELECT

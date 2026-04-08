@@ -1,8 +1,8 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getBrandMap } from './brand.js'
-import { getAssetTypeIdMap } from '../core/static.js'
 import { ModelUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getBrandMap } from './brand.js'
+import { getAssetTypeIdMap } from './referenceData.js'
 
 const modelQuery = `
     SELECT

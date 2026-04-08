@@ -1,9 +1,9 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getOrganizationMap } from '../core/organization.js'
-import { getUserMap } from '../core/user.js'
-import { getInvoiceTypeIdMap } from '../core/static.js'
 import { InvoiceUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getOrganizationMap } from '../core/organization.js'
+import { getInvoiceTypeIdMap } from '../core/referenceData.js'
+import { getUserMap } from '../core/user.js'
 
 const invoiceQuery = `
     SELECT 

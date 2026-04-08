@@ -1,8 +1,8 @@
-import { PrismaClient, User } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
+import { Connection, RowDataPacket } from 'mysql2/promise'
+import { PrismaClient } from '../../generated/prisma/client.js'
+import { UserUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { createManyEntities } from '../utils/utils.js'
-import { getRoleIdMap } from '../core/static.js'
-import { UserCreateInput, UserUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getRoleIdMap } from './referenceData.js'
 
 //--------------------------------------------------------------------
 // (8) USER

@@ -1,7 +1,7 @@
 import { AvailabilityStatus } from '../../generated/prisma/browser.js'
-import { PrismaClient, Role, Entity, FileType, Invoice, TechnicalStatus, TrackingStatus, AssetType, Accessory } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, Entity, FileType, Invoice, PrismaClient, Role, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
 
-export async function createStaticTables(prisma: PrismaClient) {
+export async function createReferenceData(prisma: PrismaClient) {
 
   await prisma.accessory.createMany({
     data: [
