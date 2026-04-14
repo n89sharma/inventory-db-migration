@@ -22,7 +22,7 @@ const arrivalQuery = `
     JOIN customer v ON a.vendor_id = v.customer_id
     JOIN customer t ON a.transporter_id = t.customer_id
     JOIN warehouse w ON a.warehouse_id = w.warehouse_id
-    LEFT JOIN user u ON u.user_id = a.added_by
+    JOIN user u ON u.user_id = a.added_by
     WHERE 
         vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653,4535)
         AND a.added_on != '0000-00-00 00:00:00'
