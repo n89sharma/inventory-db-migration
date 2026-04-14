@@ -279,14 +279,14 @@ model Arrival {
   origin_id      Int
   destination_id Int
   transporter_id Int
-  created_by_id  Int?
+  created_by_id  Int
   notes          String?  @db.Text
   created_at     DateTime
 
   origin      Organization @relation("ArrivalOrigin", fields: [origin_id], references: [id])
   destination Warehouse?   @relation(fields: [destination_id], references: [id])
   transporter Organization @relation("ArrivalTransporter", fields: [transporter_id], references: [id])
-  created_by  User?        @relation(fields: [created_by_id], references: [id])
+  created_by  User         @relation(fields: [created_by_id], references: [id])
   assets      Asset[]
 
   @@index([destination_id, created_at(sort: Desc)])
