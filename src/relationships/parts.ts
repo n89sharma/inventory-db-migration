@@ -56,15 +56,15 @@ function assetPartMapper(
 }
 
 export function getPartNamesForExchange(notes: string): string | null {
-  const goodBadRegex = /Exchanged (.*?)\(GOOD\)/g
+  const goodBadRegex = /Exchanged (.+)\(GOOD\)/
   const match = notes.match(goodBadRegex)
-  return match ? match[0] : null
+  return match ? match[1] : null
 }
 
 export function getPartNamesForOneWayTransfer(notes: string): string | null {
-  const removedItemRegex = /Removed item \[(.+)\] from/g
+  const removedItemRegex = /Removed item \[(.+)\] from/
   const match = notes.match(removedItemRegex)
-  return match ? match[0] : null
+  return match ? match[1] : null
 }
 
 const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.partTransfer.createMany({ data: e })
@@ -80,7 +80,7 @@ export async function createAssetPartEntities(prisma: PrismaClient, con: Connect
 
   const mappedEntities = Array.from(results).map((r) => {
     return assetPartMapper(r, assetMap, userMap)
-  }).filter((r) => !!r.recipient_asset_id)
+  }).filter(r => !!r.recipient_asset_id && !!r.donor_asset_id)
 
   console.log('creating new entities')
   await assetPartCreator(prisma, mappedEntities)
