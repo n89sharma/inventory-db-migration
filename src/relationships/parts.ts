@@ -37,6 +37,7 @@ function assetPartMapper(
     fixed_at: new Date(r.updated_at),
     fixed_by: userMap[r.updated_by],
     part: '',
+    is_exchange: true,
     notes: r.notes
   }
 }

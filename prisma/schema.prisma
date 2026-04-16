@@ -229,6 +229,7 @@ model PartTransfer {
   donor_asset_id     Int
   fixed_at           DateTime
   fixed_by           Int
+  is_exchange        Boolean
   part               String   @db.Text
   notes              String?  @db.Text
 
