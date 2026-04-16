@@ -108,8 +108,8 @@ model Asset {
   technical_status    TechnicalStatus    @relation(fields: [technical_status_id], references: [id])
   asset_accessories   AssetAccessory[]
   asset_errors        AssetError[]
-  donated_parts       PartTransfers[]    @relation("DonatedParts")
-  received_parts      PartTransfers[]    @relation("ReceivedParts")
+  donated_parts       PartTransfer[]     @relation("DonatedParts")
+  received_parts      PartTransfer[]     @relation("ReceivedParts")
   asset_transfers     AssetTransfer[]
   files               File[]
   comments            Comment[]
@@ -223,13 +223,14 @@ model StorePart {
   cost         Decimal @db.Decimal(12, 2)
 }
 
-model PartTransfers {
+model PartTransfer {
   id                 Int      @id @default(autoincrement())
   recipient_asset_id Int
   donor_asset_id     Int
   fixed_at           DateTime
   fixed_by           Int
-  notes              String   @db.Text
+  part               String   @db.Text
+  notes              String?  @db.Text
 
   recipient_asset Asset @relation("ReceivedParts", fields: [recipient_asset_id], references: [id])
   donor_asset     Asset @relation("DonatedParts", fields: [donor_asset_id], references: [id])
@@ -457,19 +458,19 @@ model User {
   is_active Boolean @default(false)
   role      Role    @relation(fields: [role_id], references: [id])
 
-  asset_errors_added   AssetError[]    @relation("ErrorAddedBy")
-  asset_errors_fixed   AssetError[]    @relation("ErrorFixedBy")
+  asset_errors_added   AssetError[]   @relation("ErrorAddedBy")
+  asset_errors_fixed   AssetError[]   @relation("ErrorFixedBy")
   transfers            Transfer[]
   departures           Departure[]
-  departure_sales_reps Departure[]     @relation("SalesRep")
+  departure_sales_reps Departure[]    @relation("SalesRep")
   arrivals             Arrival[]
-  holds_created        Hold[]          @relation("HoldCreatedBy")
-  holds_for            Hold[]          @relation("HoldCreatedFor")
+  holds_created        Hold[]         @relation("HoldCreatedBy")
+  holds_for            Hold[]         @relation("HoldCreatedFor")
   invoices_updated     Invoice[]
   files                File[]
   comments             Comment[]
   asset_history        AssetHistory[]
-  asset_parts          PartTransfers[]
+  asset_parts          PartTransfer[]
 }
 
 model Organization {
