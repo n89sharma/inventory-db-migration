@@ -31,15 +31,40 @@ function assetPartMapper(
   assetMap: Record<string, number>,
   userMap: Record<string, number>): PartTransferUncheckedCreateInput {
 
+  const partNamesForExchange = getPartNamesForExchange(r.notes)
+  if (!!partNamesForExchange) {
+    return {
+      recipient_asset_id: assetMap[r.recipient],
+      donor_asset_id: assetMap[r.donor],
+      fixed_at: new Date(r.updated_at),
+      fixed_by: userMap[r.updated_by],
+      part: partNamesForExchange,
+      is_exchange: true,
+      notes: r.notes
+    }
+  }
+
   return {
     recipient_asset_id: assetMap[r.recipient],
     donor_asset_id: assetMap[r.donor],
     fixed_at: new Date(r.updated_at),
     fixed_by: userMap[r.updated_by],
-    part: '',
-    is_exchange: true,
+    part: getPartNamesForOneWayTransfer(r.notes) ?? 'UNKNOWN',
+    is_exchange: false,
     notes: r.notes
   }
+}
+
+export function getPartNamesForExchange(notes: string): string | null {
+  const goodBadRegex = /Exchanged (.*?)\(GOOD\)/g
+  const match = notes.match(goodBadRegex)
+  return match ? match[0] : null
+}
+
+export function getPartNamesForOneWayTransfer(notes: string): string | null {
+  const removedItemRegex = /Removed item \[(.+)\] from/g
+  const match = notes.match(removedItemRegex)
+  return match ? match[0] : null
 }
 
 const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.partTransfer.createMany({ data: e })
