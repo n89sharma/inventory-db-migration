@@ -1,8 +1,8 @@
 import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { getUserMap } from '../core/user.js'
+import { PartTransfersUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { getAssetMap } from '../assets/asset.js'
-import { AssetPartUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getUserMap } from '../core/user.js'
 
 const assetPartsQuery = `
     SELECT 
@@ -29,18 +29,18 @@ interface AssetPartRow extends RowDataPacket {
 function assetPartMapper(
   r: AssetPartRow,
   assetMap: Record<string, number>,
-  userMap: Record<string, number>): AssetPartUncheckedCreateInput {
+  userMap: Record<string, number>): PartTransfersUncheckedCreateInput {
 
   return {
     recipient_asset_id: assetMap[r.recipient],
     donor_asset_id: assetMap[r.donor],
-    updated_at: new Date(r.updated_at),
-    updated_by: userMap[r.updated_by],
+    fixed_at: new Date(r.updated_at),
+    fixed_by: userMap[r.updated_by],
     notes: r.notes
   }
 }
 
-const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.assetPart.createMany({ data: e })
+const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.partTransfers.createMany({ data: e })
 
 export async function createAssetPartEntities(prisma: PrismaClient, con: Connection) {
 

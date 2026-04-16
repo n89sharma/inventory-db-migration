@@ -1,8 +1,7 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket } from 'mysql2/promise'
+import { StorePartUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { createManyEntities } from '../utils/utils.js'
-import { Connection } from 'mysql2/promise'
-import { PartUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 //--------------------------------------------------------------------
 // (6) PART
@@ -26,7 +25,7 @@ interface PartRow extends RowDataPacket {
   cost: string
 }
 
-const partMapper = (r: PartRow): PartUncheckedCreateInput => ({
+const partMapper = (r: PartRow): StorePartUncheckedCreateInput => ({
   description: r.description,
   part_number: r.part_number,
   dealer_price: parseFloat(r.sale_price).toFixed(2),
@@ -34,14 +33,14 @@ const partMapper = (r: PartRow): PartUncheckedCreateInput => ({
   cost: parseFloat(r.cost).toFixed(2)
 })
 
-const partCreator = (prisma: PrismaClient, e: any) => prisma.part.createMany({ data: e })
+const partCreator = (prisma: PrismaClient, e: any) => prisma.storePart.createMany({ data: e })
 
 export async function createPartEntities(prisma: PrismaClient, con: Connection) {
   return await createManyEntities(prisma, con, partQuery, partMapper, partCreator)
 }
 
 export async function getPartMap(prisma: PrismaClient) {
-  const parts = await prisma.part.findMany()
+  const parts = await prisma.storePart.findMany()
 
   return parts.reduce((map, part) => {
     map[part.part_number] = part.id
