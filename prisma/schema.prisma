@@ -451,7 +451,7 @@ model Comment {
 
 model User {
   id        Int     @id @default(autoincrement())
-  username  String  @unique @db.Text
+  username  String? @unique @db.Text
   email     String  @db.Text
   name      String  @db.Text
   clerk_id  String? @unique @db.Text

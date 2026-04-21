@@ -53,7 +53,7 @@ export async function getUserMap(prisma: PrismaClient) {
   const users = await prisma.user.findMany()
 
   return users.reduce((map, user) => {
-    map[user.username.toUpperCase()] = user.id
+    map[user.username?.toUpperCase() ?? 'NOUSERNAME'] = user.id
     return map
   }, {} as Record<string, number>)
 }
