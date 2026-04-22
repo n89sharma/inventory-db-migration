@@ -55,15 +55,6 @@ async function firstHalf(prisma: PrismaClient, con: Connection) {
   console.log('\nerror----------')
   await createErrorEntities(prisma, con)          //7 - 705/739
 
-  console.log('\nuser----------')
-  //adip's copier earth account manually mapped to the empty username
-  //hold has a better logic as it looks for id 10097
-  //it was later found that there are other users with empty username
-  //id 100,81. However, since user query expects a unique username, 
-  //these account were getting squashed anyways. these users have 5
-  //assets in 2014
-  await createUserEntities(prisma, con)           //8 - 299
-
   // Phase 2: Create transactions
   console.log('\narrival----------')
   await createArrivalEntities(prisma, con)    //9 - 34,906/ 34,917/ 37,679
@@ -114,7 +105,7 @@ async function secondHalf(prisma: PrismaClient, con: Connection) {
 
 async function main() {
 
-  console.log('\n static tables----------')
+  console.log('\n reference tables----------')
   await createReferenceDataTables(prisma)
 
   await firstHalf(prisma, con)

@@ -9,13 +9,12 @@ const invoiceQuery = `
     SELECT 
         UPPER(TRIM(a.external_invoice_number)) AS invoice_number,
         TRIM(v.account_number) AS account_number,
-        MIN(UPPER(TRIM(u.user_name))) AS updated_by,
+        MIN(a.added_by) AS updated_by,
         MIN(a.is_cleared) AS is_cleared,
         MIN(TRIM(a.added_on)) AS created_at,
         'PURCHASE' AS invoice_type
     FROM arrival a
     JOIN customer v ON v.customer_id = a.vendor_id
-    JOIN user u ON u.user_id = a.added_by
     WHERE 
     UPPER(TRIM(a.external_invoice_number)) NOT IN 
         ('N/A', '', 'T:N/A', 'NA', 'NO INVOICE', 'RECONCILIATION', 
@@ -32,11 +31,12 @@ const invoiceQuery = `
     AND a.added_on != '0000-00-00 00:00:00'
     GROUP BY 1,2
 `
+// JOIN USER DELETED
 
 interface InvoiceRow extends RowDataPacket {
   invoice_number: string,
   account_number: string,
-  updated_by: string,
+  updated_by: number,
   is_cleared: number,
   created_at: string,
   invoice_type: string
@@ -45,7 +45,7 @@ interface InvoiceRow extends RowDataPacket {
 function invoiceMapper(
   r: InvoiceRow,
   orgMap: Record<string, number>,
-  userMap: Record<string, number>,
+  userMap: Record<number, number>,
   invoiceTypeMap: Record<string, number>): InvoiceUncheckedCreateInput {
 
   return {

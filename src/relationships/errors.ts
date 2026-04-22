@@ -1,33 +1,33 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
+import { AssetErrorUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { getAssetMap } from '../assets/asset.js'
+import { getBrandMap } from '../core/brand.js'
 import { getErrorMap } from '../core/error.js'
 import { getUserMap } from '../core/user.js'
-import { getBrandMap } from '../core/brand.js'
-import { AssetErrorUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const errorQuery = `
     SELECT
         TRIM(i.barcode) AS barcode,
-        TRIM(b.name) AS brand,
+        MAX(TRIM(b.name)) AS brand,
         TRIM(e.short_name) AS code,
         CASE 
-            WHEN ie.error_status = 2 THEN TRUE 
+            WHEN MIN(ie.error_status) = 2 THEN TRUE 
             ELSE FALSE
         END AS is_fixed,
         CASE 
-            WHEN TRIM(ie.updated_on) = '0000-00-00 00:00:00' THEN NULL
-            ELSE TRIM(ie.updated_on)
+            WHEN MIN(TRIM(ie.updated_on)) = '0000-00-00 00:00:00' THEN NULL
+            ELSE MIN(TRIM(ie.updated_on))
         END AS updated_on,
-        UPPER(TRIM(u.user_name)) AS username
+        MIN(ie.updated_by) AS updated_by
     FROM inventory_errors ie
     JOIN error e USING(error_id)
     JOIN inventory i USING(inventory_id)
     JOIN error_category c USING(error_category_id)
     JOIN brand b ON b.brand_id = c.Brand_id
-    LEFT JOIN user u ON u.user_id = ie.updated_by
     GROUP BY 1,3
 `
+// JOIN USER DELETED
 
 interface ErrorRow extends RowDataPacket {
   barcode: string,
@@ -35,13 +35,13 @@ interface ErrorRow extends RowDataPacket {
   code: string,
   is_fixed: boolean,
   updated_on: string,
-  username: string
+  updated_by: number
 }
 
 function errorMapper(
   r: ErrorRow,
   assetMap: Record<string, number>,
-  userMap: Record<string, number>,
+  userMap: Record<number, number>,
   errorMap: Record<string, number>,
   brandMap: Record<string, number>): AssetErrorUncheckedCreateInput {
 
@@ -51,7 +51,7 @@ function errorMapper(
     is_fixed: !!r.is_fixed,
     added_by: null,
     added_at: null,
-    fixed_by: userMap[r.username] ? userMap[r.username] : null,
+    fixed_by: userMap[r.updated_by] ? userMap[r.updated_by] : null,
     fixed_at: r.updated_on ? new Date(r.updated_on) : null
   }
 

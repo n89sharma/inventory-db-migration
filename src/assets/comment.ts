@@ -7,7 +7,7 @@ import { CommentUncheckedCreateInput } from '../../generated/prisma/models.js'
 const commentQuery = (floor: number, ceiling: number) => `
     SELECT 
         TRIM(i.barcode) AS barcode,
-        UPPER(TRIM(u.user_name)) AS created_by,
+        c.added_by AS created_by,
         TRIM(c.remarks) AS comment,
         CASE 
             WHEN c.added_on = '0000-00-00 00:00:00' THEN '2000-01-01 00:00:00'
@@ -19,13 +19,13 @@ const commentQuery = (floor: number, ceiling: number) => `
         END AS updated_at
     FROM inventory_remark_master c
     JOIN inventory i USING(inventory_id)
-    JOIN user u ON u.user_id = c.added_by
     WHERE c.inventory_remark_master_id BETWEEN ${floor} AND ${ceiling}
 `
+// JOIN USER DELETED
 
 interface CommentRow extends RowDataPacket {
   barcode: string,
-  created_by: string,
+  created_by: number,
   comment: string,
   created_at: string,
   updated_at: string
@@ -34,7 +34,7 @@ interface CommentRow extends RowDataPacket {
 function commentMapper(
   r: CommentRow,
   assetMap: Record<string, number>,
-  userMap: Record<string, number>
+  userMap: Record<number, number>
 ): CommentUncheckedCreateInput {
   return {
     asset_id: assetMap[r.barcode],
@@ -53,7 +53,7 @@ async function createAssetEntitiesBatch(
   floor: number,
   ceiling: number,
   assetMap: Record<string, number>,
-  userMap: Record<string, number>) {
+  userMap: Record<number, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
   const [results] = await con.query<CommentRow[]>(commentQuery(floor, ceiling))

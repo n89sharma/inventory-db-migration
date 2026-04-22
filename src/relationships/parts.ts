@@ -9,27 +9,27 @@ const assetPartsQuery = `
         TRIM(r.barcode) AS recipient,
         TRIM(d.barcode) AS donor,
         v.added_on AS updated_at,
-        UPPER(TRIM(u.user_name)) AS updated_by,
+        v.added_by AS updated_by,
         TRIM(v.remark) AS notes
     FROM value_added v
     LEFT JOIN inventory r ON r.inventory_id=v.inventory_id
     LEFT JOIN inventory d ON d.inventory_id=v.source_key_item
-    LEFT JOIN user u ON u.user_id=v.added_by
     WHERE SOURCE='Old Machine'
 `
+// JOIN USER DELETED
 
 interface AssetPartRow extends RowDataPacket {
   recipient: string,
   donor: string,
   updated_at: string,
-  updated_by: string,
+  updated_by: number,
   notes: string
 }
 
 function assetPartMapper(
   r: AssetPartRow,
   assetMap: Record<string, number>,
-  userMap: Record<string, number>): PartTransferUncheckedCreateInput {
+  userMap: Record<number, number>): PartTransferUncheckedCreateInput {
 
   const partNamesForExchange = getPartNamesForExchange(r.notes)
   if (!!partNamesForExchange) {

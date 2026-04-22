@@ -16,17 +16,17 @@ const arrivalQuery = `
         TRIM(w.name) AS street,
         TRIM(t.account_number) AS transporter,
         TRIM(a.notes) AS notes,
-        UPPER(TRIM(u.user_name)) AS username,
+        a.added_by AS added_by,
         TRIM(a.added_on) AS created_at
     FROM arrival a
     JOIN customer v ON a.vendor_id = v.customer_id
     JOIN customer t ON a.transporter_id = t.customer_id
     JOIN warehouse w ON a.warehouse_id = w.warehouse_id
-    JOIN user u ON u.user_id = a.added_by
     WHERE 
         vendor_id NOT in (98,1343,1344,3185,3427,4008,4368,4510,4653,4535)
         AND a.added_on != '0000-00-00 00:00:00'
 `
+// JOIN USER DELETED
 
 const originalArrivalsQuery = `
     CALL getHistoricArrivals()
@@ -39,7 +39,7 @@ interface ArrivalRow extends RowDataPacket {
   street: string,
   transporter: string,
   notes: string,
-  username: string,
+  added_by: number,
   created_at: string
 }
 
@@ -52,14 +52,14 @@ function arrivalMapper(
   r: ArrivalRow,
   orgMap: Record<string, number>,
   warehouseMap: Record<string, number>,
-  userMap: Record<string, number>): ArrivalUncheckedCreateInput {
+  userMap: Record<number, number>): ArrivalUncheckedCreateInput {
 
   return {
     arrival_number: r.arrival_number,
     origin_id: orgMap[r.vendor],
     destination_id: warehouseMap[`${r.code}:${r.street}`],
     transporter_id: orgMap[r.transporter],
-    created_by_id: userMap[r.username],
+    created_by_id: userMap[r.added_by],
     notes: r.notes,
     created_at: new Date(r.created_at)
   }

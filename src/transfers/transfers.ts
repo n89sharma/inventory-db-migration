@@ -1,9 +1,9 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getOrganizationMap } from '../core/organization.js'
-import { getWarehouseMap } from '../core/warehouse.js'
-import { getUserMap } from '../core/user.js'
 import { TransferUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getOrganizationMap } from '../core/organization.js'
+import { getUserMap } from '../core/user.js'
+import { getWarehouseMap } from '../core/warehouse.js'
 
 const transferQuery = `
     SELECT
@@ -14,16 +14,16 @@ const transferQuery = `
         TRIM(wd.name) AS destination_street,
         TRIM(c.account_number) AS transporter,
         TRIM(t.remarks) AS notes,
-        UPPER(TRIM(u.user_name)) AS created_by,
+        t.added_by AS created_by,
         TRIM(t.added_on) AS created_at,
         t.transfer_date
     FROM transfer t 
     JOIN warehouse wo ON t.origin_id = wo.warehouse_id
     JOIN warehouse wd ON t.destination_id = wd.warehouse_id
     JOIN customer c ON t.transporter_id = c.customer_id
-    JOIN user u ON u.user_id = t.added_by
     WHERE t.added_on != '0000-00-00 00:00:00'
 `
+// JOIN USER DELETED
 
 interface TransferRow extends RowDataPacket {
   transfer_number: string,
@@ -33,7 +33,7 @@ interface TransferRow extends RowDataPacket {
   destination_street: string,
   transporter: string,
   notes: string,
-  created_by: string,
+  created_by: number,
   created_at: string
 }
 
@@ -41,7 +41,7 @@ function transferMapper(
   r: TransferRow,
   orgMap: Record<string, number>,
   warehouseMap: Record<string, number>,
-  userMap: Record<string, number>): TransferUncheckedCreateInput {
+  userMap: Record<number, number>): TransferUncheckedCreateInput {
 
   return {
     transfer_number: r.transfer_number,

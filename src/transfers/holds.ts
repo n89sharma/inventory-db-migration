@@ -7,11 +7,8 @@ import { HoldUncheckedCreateInput } from '../../generated/prisma/models.js'
 const holdQuery = `
     SELECT
         TRIM(h.ah_number) AS hold_number,
-        CASE 
-            WHEN UPPER(TRIM(ua.user_id)) = 10097 THEN 'ASUKHIJAC'
-            ELSE UPPER(TRIM(ua.user_name))
-        END AS created_by,
-        UPPER(TRIM(uf.user_name)) AS created_for,
+        h.added_by AS created_by,
+        h.ah_for_user_id AS created_for,
         TRIM(c.account_number) AS customer,
         TRIM(h.notes) AS notes,
         TRIM(h.added_on) AS created_at,
@@ -24,17 +21,16 @@ const holdQuery = `
             ELSE TRIM(h.ah_date_to)
         END AS to_dt
     FROM allot_hold_master h
-    JOIN user ua ON ua.user_id = h.added_by	
-    JOIN user uf ON uf.user_id = h.ah_for_user_id
     JOIN customer c ON c.customer_id = h.ah_for_customer_id
     WHERE h.added_on != '0000-00-00 00:00:00' AND h.allot_hold_id != 10659
     ORDER BY h.added_on DESC
 `
+// JOIN USER DELETED
 
 interface HoldRow extends RowDataPacket {
   hold_number: string,
-  created_by: string,
-  created_for: string,
+  created_by: number,
+  created_for: number,
   customer: string,
   notes: string,
   created_at: string,
@@ -45,7 +41,7 @@ interface HoldRow extends RowDataPacket {
 function holdMapper(
   r: HoldRow,
   orgMap: Record<string, number>,
-  userMap: Record<string, number>): HoldUncheckedCreateInput {
+  userMap: Record<number, number>): HoldUncheckedCreateInput {
 
   return {
     hold_number: r.hold_number,

@@ -1,7 +1,10 @@
 import { AvailabilityStatus } from '../../generated/prisma/browser.js'
 import { Accessory, AssetType, Entity, FileType, Invoice, PrismaClient, Role, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
+import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
+
+  await createUserEntities(prisma)
 
   await prisma.accessory.createMany({
     data: [
