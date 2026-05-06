@@ -1,5 +1,5 @@
 import { AvailabilityStatus } from '../../generated/prisma/browser.js'
-import { Accessory, AssetType, Entity, FileType, Invoice, PrismaClient, Role, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient, Role, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -92,42 +92,15 @@ export async function createReferenceData(prisma: PrismaClient) {
     ]
   })
 
-  await prisma.action.createMany({
-    data: [
-      { action: 'CREATE' },
-      { action: 'UPDATE' },
-      { action: 'DELETE' }
-    ]
-  })
-
   await prisma.invoiceType.createMany({
     data: [
       { type: 'PURCHASE' },
       { type: 'SALE' },
     ]
   })
-
-  await prisma.entity.createMany({
-    data: [
-      { entity: 'ASSET' },
-      { entity: 'ERROR' },
-      { entity: 'PART' },
-      { entity: 'TRANSFER' },
-      { entity: 'ARRIVAL' },
-      { entity: 'DEPARTURE' },
-      { entity: 'HOLD' },
-      { entity: 'INVOICE' },
-      { entity: 'WAREHOUSE' },
-      { entity: 'BRAND' },
-      { entity: 'FILE' },
-      { entity: 'COMMENT' },
-      { entity: 'USER' },
-      { entity: 'ORGANIZATION' }
-    ]
-  })
 }
 
-type PrismaEntity = Entity | Invoice | FileType | Role | TechnicalStatus | AvailabilityStatus | TrackingStatus | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | Role | TechnicalStatus | AvailabilityStatus | TrackingStatus | AssetType | Accessory
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
