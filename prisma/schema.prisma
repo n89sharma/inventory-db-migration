@@ -56,22 +56,10 @@ model FileType {
   files File[]
 }
 
-model Action {
-  id             Int            @id @default(autoincrement())
-  action         String         @unique
-  assetHistories AssetHistory[]
-}
-
 model InvoiceType {
   id       Int       @id @default(autoincrement())
   type     String    @unique
   invoices Invoice[]
-}
-
-model Entity {
-  id             Int            @id @default(autoincrement())
-  entity         String         @unique
-  assetHistories AssetHistory[]
 }
 
 // MODELS
@@ -113,7 +101,6 @@ model Asset {
   asset_transfers     AssetTransfer[]
   files               File[]
   comments            Comment[]
-  asset_history       AssetHistory[]
 
   @@index([serial_number])
   @@index([model_id])
@@ -470,7 +457,7 @@ model User {
   invoices_updated     Invoice[]
   files                File[]
   comments             Comment[]
-  asset_history        AssetHistory[]
+  history              History[]
   asset_parts          PartTransfer[]
 }
 
@@ -501,21 +488,19 @@ model Organization {
   @@index([name])
 }
 
-model AssetHistory {
-  id         Int      @id @default(autoincrement())
-  asset_id   Int
-  user_id    Int
-  action_id  Int
-  entity_id  Int
-  changed_on DateTime
-  changes    Json
+model History {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  changed_on  DateTime
+  changes     Json
+  entity_type String
+  entity_id   Int
+  action_type String
 
-  asset  Asset  @relation(fields: [asset_id], references: [id])
-  user   User   @relation(fields: [user_id], references: [id])
-  action Action @relation(fields: [action_id], references: [id])
-  entity Entity @relation(fields: [entity_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
 
-  @@index([asset_id, changed_on(sort: Desc)])
+  @@index([entity_type, entity_id, changed_on(sort: Desc)])
+  @@index([user_id, changed_on(sort: Desc)])
 }
 
 model Sequence {
