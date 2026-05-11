@@ -44,12 +44,6 @@ model TechnicalStatus {
   assets Asset[]
 }
 
-model Role {
-  id    Int    @id @default(autoincrement())
-  role  String @unique
-  users User[]
-}
-
 model FileType {
   id    Int    @id @default(autoincrement())
   type  String @unique
@@ -442,9 +436,7 @@ model User {
   email     String? @unique @db.Text
   clerk_id  String? @unique @db.Text
   is_active Boolean @default(false)
-  role_id   Int?
-
-  role Role? @relation(fields: [role_id], references: [id])
+  role      String?
 
   asset_errors_added   AssetError[]   @relation("ErrorAddedBy")
   asset_errors_fixed   AssetError[]   @relation("ErrorFixedBy")
