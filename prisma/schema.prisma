@@ -78,6 +78,9 @@ model Asset {
   created_at              DateTime
   is_held                 Boolean
 
+  barcode_normalized String? @default(dbgenerated()) @map("barcode_normalized")
+  serial_normalized  String? @default(dbgenerated()) @map("serial_normalized")
+
   model               Model              @relation(fields: [model_id], references: [id])
   location            Location?          @relation(fields: [location_id], references: [id])
   purchase_invoice    Invoice?           @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
@@ -96,6 +99,8 @@ model Asset {
   files               File[]
   comments            Comment[]
 
+  @@index([barcode_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([serial_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([serial_number])
   @@index([model_id])
   @@index([location_id])

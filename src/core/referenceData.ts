@@ -1,5 +1,5 @@
 import { AvailabilityStatus } from '../../generated/prisma/browser.js'
-import { Accessory, AssetType, FileType, Invoice, PrismaClient, Role, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -74,17 +74,6 @@ export async function createReferenceData(prisma: PrismaClient) {
     ]
   })
 
-  await prisma.role.createMany({
-    data: [
-      { role: 'ADMIN' },
-      { role: 'MEMBER' },
-      { role: 'INVENTORY' },
-      { role: 'TECH' },
-      { role: 'FINANCE' },
-      { role: 'SALES' }
-    ]
-  })
-
   await prisma.fileType.createMany({
     data: [
       { type: 'PDF' },
@@ -100,7 +89,7 @@ export async function createReferenceData(prisma: PrismaClient) {
   })
 }
 
-type PrismaEntity = Invoice | FileType | Role | TechnicalStatus | AvailabilityStatus | TrackingStatus | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | TechnicalStatus | AvailabilityStatus | TrackingStatus | AssetType | Accessory
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -201,11 +190,6 @@ export async function getAccessoryIdMap(prisma: PrismaClient): Promise<Record<st
     'HDD': accessoryMap['HDD'],
     'SCAN': accessoryMap['SCAN']
   }
-}
-
-export async function getRoleIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
-  const roles = await prisma.role.findMany()
-  return getMap(roles, (r) => r.role)
 }
 
 export async function getInvoiceTypeIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
