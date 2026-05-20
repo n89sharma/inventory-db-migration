@@ -110,8 +110,7 @@ function assetMapper(
     arrival_id: arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
     departure_id: departureMap[r.departure_number],
     hold_id: holdMap[r.hold_number],
-    created_at: new Date(r.created_at),
-    is_held: !!holdMap[r.hold_number]
+    created_at: new Date(r.created_at)
   }
 }
 

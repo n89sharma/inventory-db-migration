@@ -76,7 +76,6 @@ model Asset {
   cost                    Cost?
   technical_specification TechnicalSpecification?
   created_at              DateTime
-  is_held                 Boolean
 
   barcode_normalized String? @default(dbgenerated()) @map("barcode_normalized")
   serial_normalized  String? @default(dbgenerated()) @map("serial_normalized")
