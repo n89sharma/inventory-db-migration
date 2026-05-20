@@ -1,5 +1,5 @@
-import { AvailabilityStatus } from '../../generated/prisma/browser.js'
-import { Accessory, AssetType, FileType, Invoice, PrismaClient, TechnicalStatus } from '../../generated/prisma/client.js'
+import { AvailabilityStatus, Readiness } from '../../generated/prisma/browser.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -49,13 +49,12 @@ export async function createReferenceData(prisma: PrismaClient) {
     ]
   })
 
-  await prisma.technicalStatus.createMany({
+  await prisma.readiness.createMany({
     data: [
-      { status: 'NOT_TESTED' },
-      { status: 'OK' },
-      { status: 'ERROR' },
-      { status: 'PREPARED' },
-      { status: 'PENDING' }
+      { status: 'UNTESTED' },
+      { status: 'HAS_ERRORS' },
+      { status: 'PP_OK' },
+      { status: 'CUSTOMER_READY' }
     ]
   })
 
@@ -74,7 +73,7 @@ export async function createReferenceData(prisma: PrismaClient) {
   })
 }
 
-type PrismaEntity = Invoice | FileType | TechnicalStatus | AvailabilityStatus | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | Readiness | AvailabilityStatus | AssetType | Accessory
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -98,15 +97,15 @@ export async function getAssetTypeIdMap(prisma: PrismaClient): Promise<Record<st
   }
 }
 
-export async function getTechnicalStatusIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
-  const technicalStatuses = await prisma.technicalStatus.findMany()
-  const technicalStatusMap = getMap(technicalStatuses, (t) => t.status)
+export async function getReadinessIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
+  const readiness = await prisma.readiness.findMany()
+  const readinessMap = getMap(readiness, (t) => t.status)
   return {
-    'Not Tested': technicalStatusMap['NOT_TESTED'],
-    'OK': technicalStatusMap['OK'],
-    'Error': technicalStatusMap['ERROR'],
-    'Prepared': technicalStatusMap['PREPARED'],
-    'Pending': technicalStatusMap['PENDING']
+    'Not Tested': readinessMap['UNTESTED'],
+    'OK': readinessMap['PP_OK'],
+    'Error': readinessMap['HAS_ERRORS'],
+    'Prepared': readinessMap['CUSTOMER_READY'],
+    'Pending': readinessMap['UNTESTED']
   }
 }
 

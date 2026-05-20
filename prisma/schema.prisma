@@ -32,7 +32,7 @@ model AvailabilityStatus {
   assets Asset[]
 }
 
-model TechnicalStatus {
+model Readiness {
   id     Int     @id @default(autoincrement())
   status String  @unique
   assets Asset[]
@@ -59,7 +59,7 @@ model Asset {
   location_id   Int?
 
   availability_status_id Int
-  technical_status_id    Int
+  readiness_id           Int?
 
   purchase_invoice_id     Int?
   sales_invoice_id        Int?
@@ -81,7 +81,7 @@ model Asset {
   departure           Departure?         @relation(fields: [departure_id], references: [id])
   hold                Hold?              @relation(fields: [hold_id], references: [id])
   availability_status AvailabilityStatus @relation(fields: [availability_status_id], references: [id])
-  technical_status    TechnicalStatus    @relation(fields: [technical_status_id], references: [id])
+  readiness           Readiness?         @relation(fields: [readiness_id], references: [id])
   asset_accessories   AssetAccessory[]
   asset_errors        AssetError[]
   donated_parts       PartTransfer[]     @relation("DonatedParts")
@@ -96,7 +96,7 @@ model Asset {
   @@index([model_id])
   @@index([location_id])
   @@index([availability_status_id])
-  @@index([technical_status_id])
+  @@index([readiness_id])
   @@index([arrival_id])
   @@index([departure_id])
   @@index([hold_id])
