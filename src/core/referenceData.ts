@@ -1,5 +1,4 @@
-import { AvailabilityStatus, Readiness } from '../../generated/prisma/browser.js'
-import { Accessory, AssetType, FileType, Invoice, PrismaClient } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient, Readiness, Status } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -36,14 +35,15 @@ export async function createReferenceData(prisma: PrismaClient) {
     ]
   })
 
-  await prisma.availabilityStatus.createMany({
+  await prisma.status.createMany({
     data: [
       { status: 'UNKNOWN' },
-      { status: 'AVAILABLE' },
+      { status: 'ON_ORDER' },
+      { status: 'IN_STOCK' },
       { status: 'HELD' },
       { status: 'SOLD' },
-      { status: 'PARTS' },
-      { status: 'SCRAP' },
+      { status: 'HARVESTED' },
+      { status: 'SCRAPPED' },
       { status: 'RETURNED' },
       { status: 'LEASED' }
     ]
@@ -73,7 +73,7 @@ export async function createReferenceData(prisma: PrismaClient) {
   })
 }
 
-type PrismaEntity = Invoice | FileType | Readiness | AvailabilityStatus | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | Readiness | Status | AssetType | Accessory
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -110,26 +110,26 @@ export async function getReadinessIdMap(prisma: PrismaClient): Promise<Record<st
 }
 
 export async function getAvailabilityStatusIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
-  const availabilityStatuses = await prisma.availabilityStatus.findMany()
-  const availabilityStatusMap = getMap(availabilityStatuses, (a) => a.status)
+  const statuses = await prisma.status.findMany()
+  const statusMap = getMap(statuses, (a) => a.status)
   return {
-    'Unknown': availabilityStatusMap['UNKNOWN'],
-    'In Transit': availabilityStatusMap['AVAILABLE'],
-    'Stock': availabilityStatusMap['AVAILABLE'],
-    'Hold': availabilityStatusMap['HELD'],
-    'Sold': availabilityStatusMap['SOLD'],
-    'Void': availabilityStatusMap['UNKNOWN'],
-    'For parts': availabilityStatusMap['PARTS'],
-    'Scrap': availabilityStatusMap['SCRAP'],
-    'Consignment': availabilityStatusMap['UNKNOWN'],
-    'Transferred': availabilityStatusMap['UNKNOWN'],
-    'Returned': availabilityStatusMap['RETURNED'],
-    'Alot': availabilityStatusMap['HELD'],
-    'Loan': availabilityStatusMap['UNKNOWN'],
-    'Missing': availabilityStatusMap['UNKNOWN'],
-    'Return To Vendor': availabilityStatusMap['RETURNED'],
-    'Return To Remarketing': availabilityStatusMap['RETURNED'],
-    'Lease': availabilityStatusMap['LEASED']
+    'Unknown': statusMap['UNKNOWN'],
+    'In Transit': statusMap['AVAILABLE'],
+    'Stock': statusMap['AVAILABLE'],
+    'Hold': statusMap['HELD'],
+    'Sold': statusMap['SOLD'],
+    'Void': statusMap['UNKNOWN'],
+    'For parts': statusMap['PARTS'],
+    'Scrap': statusMap['SCRAP'],
+    'Consignment': statusMap['UNKNOWN'],
+    'Transferred': statusMap['UNKNOWN'],
+    'Returned': statusMap['RETURNED'],
+    'Alot': statusMap['HELD'],
+    'Loan': statusMap['UNKNOWN'],
+    'Missing': statusMap['UNKNOWN'],
+    'Return To Vendor': statusMap['RETURNED'],
+    'Return To Remarketing': statusMap['RETURNED'],
+    'Lease': statusMap['LEASED']
   }
 }
 

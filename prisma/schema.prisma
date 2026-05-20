@@ -26,7 +26,7 @@ model AssetType {
   models     Model[]
 }
 
-model AvailabilityStatus {
+model Status {
   id     Int     @id @default(autoincrement())
   status String  @unique
   assets Asset[]
@@ -58,8 +58,8 @@ model Asset {
   model_id      Int
   location_id   Int?
 
-  availability_status_id Int
-  readiness_id           Int?
+  status_id    Int
+  readiness_id Int
 
   purchase_invoice_id     Int?
   sales_invoice_id        Int?
@@ -73,29 +73,29 @@ model Asset {
   barcode_normalized String? @default(dbgenerated()) @map("barcode_normalized")
   serial_normalized  String? @default(dbgenerated()) @map("serial_normalized")
 
-  model               Model              @relation(fields: [model_id], references: [id])
-  location            Location?          @relation(fields: [location_id], references: [id])
-  purchase_invoice    Invoice?           @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
-  sales_invoice       Invoice?           @relation("SalesInvoice", fields: [sales_invoice_id], references: [id])
-  arrival             Arrival?           @relation(fields: [arrival_id], references: [id])
-  departure           Departure?         @relation(fields: [departure_id], references: [id])
-  hold                Hold?              @relation(fields: [hold_id], references: [id])
-  availability_status AvailabilityStatus @relation(fields: [availability_status_id], references: [id])
-  readiness           Readiness?         @relation(fields: [readiness_id], references: [id])
-  asset_accessories   AssetAccessory[]
-  asset_errors        AssetError[]
-  donated_parts       PartTransfer[]     @relation("DonatedParts")
-  received_parts      PartTransfer[]     @relation("ReceivedParts")
-  asset_transfers     AssetTransfer[]
-  files               File[]
-  comments            Comment[]
+  model             Model            @relation(fields: [model_id], references: [id])
+  location          Location?        @relation(fields: [location_id], references: [id])
+  purchase_invoice  Invoice?         @relation("PurchaseInvoice", fields: [purchase_invoice_id], references: [id])
+  sales_invoice     Invoice?         @relation("SalesInvoice", fields: [sales_invoice_id], references: [id])
+  arrival           Arrival?         @relation(fields: [arrival_id], references: [id])
+  departure         Departure?       @relation(fields: [departure_id], references: [id])
+  hold              Hold?            @relation(fields: [hold_id], references: [id])
+  status            Status           @relation(fields: [status_id], references: [id])
+  readiness         Readiness        @relation(fields: [readiness_id], references: [id])
+  asset_accessories AssetAccessory[]
+  asset_errors      AssetError[]
+  donated_parts     PartTransfer[]   @relation("DonatedParts")
+  received_parts    PartTransfer[]   @relation("ReceivedParts")
+  asset_transfers   AssetTransfer[]
+  files             File[]
+  comments          Comment[]
 
   @@index([barcode_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([serial_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([serial_number])
   @@index([model_id])
   @@index([location_id])
-  @@index([availability_status_id])
+  @@index([status_id])
   @@index([readiness_id])
   @@index([arrival_id])
   @@index([departure_id])

@@ -92,7 +92,7 @@ function assetMapper(
   holdMap: Record<string, number>,
   originalArrivalMap: Record<string, string>,
   orgMap: Record<string, number>,
-  availabilityStatusMap: Record<string, number>,
+  statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
   locationMap: Record<string, number>): AssetUncheckedCreateInput {
 
@@ -101,7 +101,7 @@ function assetMapper(
     serial_number: r.serial_number,
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
     location_id: locationMap[`${warehouseMap[`${r.location_code}:${r.location_street}`]}:${r.location}`],
-    availability_status_id: availabilityStatusMap[r.status],
+    status_id: statusMap[r.status],
     readiness_id: !!readinessMap[r.technical_status] ? readinessMap[r.technical_status] : readinessMap['Not Tested'],
     purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
     sales_invoice_id: null,
@@ -128,7 +128,7 @@ async function createAssetEntitiesBatch(
   holdMap: Record<string, number>,
   originalArrivalMap: Record<string, string>,
   orgMap: Record<string, number>,
-  availabilityStatusMap: Record<string, number>,
+  statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
   locationMap: Record<string, number>) {
 
@@ -149,7 +149,7 @@ async function createAssetEntitiesBatch(
       holdMap,
       originalArrivalMap,
       orgMap,
-      availabilityStatusMap,
+      statusMap,
       readinessMap,
       locationMap
     )
@@ -173,7 +173,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const holdMap = await getHoldMap(prisma)
   const originalArrivalMap = await getOriginalArrivalMap(con)
   const orgMap = await getOrganizationMap(prisma)
-  const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
+  const statusMap = await getAvailabilityStatusIdMap(prisma)
   const readinessMap = await getReadinessIdMap(prisma)
   const locationMap = await getLocationMap(prisma)
 
@@ -196,7 +196,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       holdMap,
       originalArrivalMap,
       orgMap,
-      availabilityStatusMap,
+      statusMap,
       readinessMap,
       locationMap
     )
