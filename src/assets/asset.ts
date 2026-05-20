@@ -5,7 +5,7 @@ import { getBrandMap } from '../core/brand.js'
 import { getLocationMap } from '../core/location.js'
 import { getModelMap } from '../core/model.js'
 import { getOrganizationMap } from '../core/organization.js'
-import { getAvailabilityStatusIdMap, getTechnicalStatusIdMap, getTrackingStatusIdMap } from '../core/referenceData.js'
+import { getAvailabilityStatusIdMap, getTechnicalStatusIdMap } from '../core/referenceData.js'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getArrivalMap, getOriginalArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
@@ -94,7 +94,6 @@ function assetMapper(
   orgMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
-  trackingStatusMap: Record<string, number>,
   locationMap: Record<string, number>): AssetUncheckedCreateInput {
 
   return {
@@ -102,7 +101,6 @@ function assetMapper(
     serial_number: r.serial_number,
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
     location_id: locationMap[`${warehouseMap[`${r.location_code}:${r.location_street}`]}:${r.location}`],
-    tracking_status_id: trackingStatusMap[r.status],
     availability_status_id: availabilityStatusMap[r.status],
     technical_status_id: !!technicalStatusMap[r.technical_status] ? technicalStatusMap[r.technical_status] : technicalStatusMap['Not Tested'],
     purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
@@ -132,7 +130,6 @@ async function createAssetEntitiesBatch(
   orgMap: Record<string, number>,
   availabilityStatusMap: Record<string, number>,
   technicalStatusMap: Record<string, number>,
-  trackingStatusMap: Record<string, number>,
   locationMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
@@ -154,7 +151,6 @@ async function createAssetEntitiesBatch(
       orgMap,
       availabilityStatusMap,
       technicalStatusMap,
-      trackingStatusMap,
       locationMap
     )
   })
@@ -179,7 +175,6 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const orgMap = await getOrganizationMap(prisma)
   const availabilityStatusMap = await getAvailabilityStatusIdMap(prisma)
   const technicalStatusMap = await getTechnicalStatusIdMap(prisma)
-  const trackingStatusMap = await getTrackingStatusIdMap(prisma)
   const locationMap = await getLocationMap(prisma)
 
   const start = 0
@@ -203,7 +198,6 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       orgMap,
       availabilityStatusMap,
       technicalStatusMap,
-      trackingStatusMap,
       locationMap
     )
   }

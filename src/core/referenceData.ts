@@ -1,5 +1,5 @@
 import { AvailabilityStatus } from '../../generated/prisma/browser.js'
-import { Accessory, AssetType, FileType, Invoice, PrismaClient, TechnicalStatus, TrackingStatus } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient, TechnicalStatus } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -33,21 +33,6 @@ export async function createReferenceData(prisma: PrismaClient) {
       { asset_type: 'PRINTER' },
       { asset_type: 'WAREHOUSE_SUPPLIES' },
       { asset_type: 'FAX' }
-    ]
-  })
-
-  await prisma.trackingStatus.createMany({
-    data: [
-      { status: 'UNKNOWN' },
-      { status: 'MISSING' },
-      { status: 'PURCHASED' },
-      { status: 'INBOUND' },
-      { status: 'RECEIVING' },
-      { status: 'REPAIRING' },
-      { status: 'IN_STOCK' },
-      { status: 'PACKING' },
-      { status: 'OUTBOUND' },
-      { status: 'DELIVERED' }
     ]
   })
 
@@ -89,7 +74,7 @@ export async function createReferenceData(prisma: PrismaClient) {
   })
 }
 
-type PrismaEntity = Invoice | FileType | TechnicalStatus | AvailabilityStatus | TrackingStatus | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | TechnicalStatus | AvailabilityStatus | AssetType | Accessory
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -122,30 +107,6 @@ export async function getTechnicalStatusIdMap(prisma: PrismaClient): Promise<Rec
     'Error': technicalStatusMap['ERROR'],
     'Prepared': technicalStatusMap['PREPARED'],
     'Pending': technicalStatusMap['PENDING']
-  }
-}
-
-export async function getTrackingStatusIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
-  const trackingStatuses = await prisma.trackingStatus.findMany()
-  const trackingStatusMap = getMap(trackingStatuses, (t) => t.status)
-  return {
-    'Unknown': trackingStatusMap['UNKNOWN'],
-    'In Transit': trackingStatusMap['INBOUND'],
-    'Stock': trackingStatusMap['IN_STOCK'],
-    'Hold': trackingStatusMap['UNKNOWN'],
-    'Sold': trackingStatusMap['DELIVERED'],
-    'Void': trackingStatusMap['UNKNOWN'],
-    'For parts': trackingStatusMap['DELIVERED'],
-    'Scrap': trackingStatusMap['DELIVERED'],
-    'Consignment': trackingStatusMap['UNKNOWN'],
-    'Transferred': trackingStatusMap['DELIVERED'],
-    'Returned': trackingStatusMap['DELIVERED'],
-    'Alot': trackingStatusMap['UNKNOWN'],
-    'Loan': trackingStatusMap['UNKNOWN'],
-    'Missing': trackingStatusMap['MISSING'],
-    'Return To Vendor': trackingStatusMap['DELIVERED'],
-    'Return To Remarketing': trackingStatusMap['DELIVERED'],
-    'Lease': trackingStatusMap['DELIVERED']
   }
 }
 
