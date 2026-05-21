@@ -2,7 +2,7 @@ import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
 import { AssetUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { getBrandMap } from '../core/brand.js'
-import { getLocationMap } from '../core/location.js'
+import { getBinLocationMap } from '../core/location.js'
 import { getModelMap } from '../core/model.js'
 import { getOrganizationMap } from '../core/organization.js'
 import { getReadinessIdMap, getStatusIdMap } from '../core/referenceData.js'
@@ -21,9 +21,9 @@ const assetQuery = (floor: number, ceiling: number) => `
         TRIM(w.city_alias) AS code,
         TRIM(w.name) AS street,
         
-        TRIM(pw.city_alias) AS location_code,
-        TRIM(pw.name) AS location_street,
-        TRIM(p.name) AS location,
+        TRIM(pw.city_alias) AS warehouse_code,
+        TRIM(pw.name) AS warehouse_street,
+        TRIM(p.name) AS bin,
 
         -- TYPE AND STATUS ENUMS
         TRIM(s.name) AS status,
@@ -63,9 +63,9 @@ interface AssetRow extends RowDataPacket {
   code: string,
   street: string,
 
-  location_code: string,
-  location_street: string,
-  location: string,
+  warehouse_code: string,
+  warehouse_street: string,
+  bin: string,
 
   status: string,
   technical_status: string,
@@ -94,14 +94,14 @@ function assetMapper(
   orgMap: Record<string, number>,
   statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
-  locationMap: Record<string, number>): AssetUncheckedCreateInput {
+  binLocationMap: Record<string, number>): AssetUncheckedCreateInput {
 
   if (!statusMap[r.status]) throw new Error(`No status in ${r.barcode}, ${r.status}`)
   return {
     barcode: r.barcode,
     serial_number: r.serial_number,
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
-    location_id: locationMap[`${warehouseMap[`${r.location_code}:${r.location_street}`]}:${r.location}`],
+    location_id: binLocationMap[`${warehouseMap[`${r.warehouse_code}:${r.warehouse_street}`]}:${r.location}`],
     status_id: statusMap[r.status],
     readiness_id: !!readinessMap[r.technical_status] ? readinessMap[r.technical_status] : readinessMap['Not Tested'],
     purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
@@ -131,7 +131,7 @@ async function createAssetEntitiesBatch(
   orgMap: Record<string, number>,
   statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
-  locationMap: Record<string, number>) {
+  binLocationMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
   const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
@@ -152,7 +152,7 @@ async function createAssetEntitiesBatch(
       orgMap,
       statusMap,
       readinessMap,
-      locationMap
+      binLocationMap
     )
   })
 
@@ -176,7 +176,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const orgMap = await getOrganizationMap(prisma)
   const statusMap = await getStatusIdMap(prisma)
   const readinessMap = await getReadinessIdMap(prisma)
-  const locationMap = await getLocationMap(prisma)
+  const binLocationMap = await getBinLocationMap(prisma)
 
   const start = 0
   const step = 50000
@@ -199,7 +199,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       orgMap,
       statusMap,
       readinessMap,
-      locationMap
+      binLocationMap
     )
   }
 }

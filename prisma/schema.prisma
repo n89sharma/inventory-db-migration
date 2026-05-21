@@ -70,6 +70,8 @@ model Asset {
   technical_specification TechnicalSpecification?
   created_at              DateTime
 
+  is_in_transit Boolean @default(false)
+
   barcode_normalized String? @default(dbgenerated()) @map("barcode_normalized")
   serial_normalized  String? @default(dbgenerated()) @map("serial_normalized")
 
@@ -342,6 +344,25 @@ model Invoice {
   @@index([invoice_number])
 }
 
+model Location {
+  id           Int    @id @default(autoincrement())
+  warehouse_id Int
+  zone_id      Int
+  bin          String @default("")
+
+  warehouse Warehouse @relation(fields: [warehouse_id], references: [id])
+  zone      Zone      @relation(fields: [zone_id], references: [id])
+  assets    Asset[]
+
+  @@unique([warehouse_id, zone_id, bin])
+}
+
+model Zone {
+  id        Int        @id @default(autoincrement())
+  zone      String     @unique
+  locations Location[]
+}
+
 model Warehouse {
   id                    Int         @id @default(autoincrement())
   city_code             String      @db.Char(3)
@@ -354,17 +375,6 @@ model Warehouse {
   locations             Location[]
 
   @@unique([city_code, street])
-}
-
-model Location {
-  id           Int    @id @default(autoincrement())
-  warehouse_id Int
-  location     String @db.VarChar(50)
-
-  warehouse Warehouse @relation(fields: [warehouse_id], references: [id])
-  assets    Asset[]
-
-  @@unique([warehouse_id, location])
 }
 
 model Brand {

@@ -1,4 +1,4 @@
-import { Accessory, AssetType, FileType, Invoice, PrismaClient, Readiness, Status } from '../../generated/prisma/client.js'
+import { Accessory, AssetType, FileType, Invoice, PrismaClient, Readiness, Status, Zone } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
 export async function createReferenceData(prisma: PrismaClient) {
@@ -72,9 +72,18 @@ export async function createReferenceData(prisma: PrismaClient) {
       { type: 'SALE' },
     ]
   })
+
+  await prisma.zone.createMany({
+    data: [
+      { zone: 'TECH' },
+      { zone: 'SHIPPING_AND_RECEIVING' },
+      { zone: 'PARTS' },
+      { zone: 'BIN' },
+    ]
+  })
 }
 
-type PrismaEntity = Invoice | FileType | Readiness | Status | AssetType | Accessory
+type PrismaEntity = Invoice | FileType | Readiness | Status | AssetType | Accessory | Zone
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -156,4 +165,9 @@ export async function getAccessoryIdMap(prisma: PrismaClient): Promise<Record<st
 export async function getInvoiceTypeIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
   const invoiceTypes = await prisma.invoiceType.findMany()
   return getMap(invoiceTypes, (i) => i.type)
+}
+
+export async function getZoneIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
+  const zones = await prisma.zone.findMany()
+  return getMap(zones, (z) => z.zone)
 }
