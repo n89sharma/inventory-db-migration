@@ -1,8 +1,8 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
+import { HoldUncheckedCreateInput } from '../../generated/prisma/models.js'
 import { getOrganizationMap } from '../core/organization.js'
 import { getUserMap } from '../core/user.js'
-import { HoldUncheckedCreateInput } from '../../generated/prisma/models.js'
 
 const holdQuery = `
     SELECT
@@ -43,6 +43,7 @@ function holdMapper(
   orgMap: Record<string, number>,
   userMap: Record<number, number>): HoldUncheckedCreateInput {
 
+  if (!userMap[r.created_by]) throw new Error(`Issue with user id: ${r.created_by}, hold ${r.hold_number}`)
   return {
     hold_number: r.hold_number,
     created_by_id: userMap[r.created_by],

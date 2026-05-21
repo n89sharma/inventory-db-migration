@@ -5,7 +5,7 @@ import { getBrandMap } from '../core/brand.js'
 import { getLocationMap } from '../core/location.js'
 import { getModelMap } from '../core/model.js'
 import { getOrganizationMap } from '../core/organization.js'
-import { getAvailabilityStatusIdMap, getReadinessIdMap } from '../core/referenceData.js'
+import { getReadinessIdMap, getStatusIdMap } from '../core/referenceData.js'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getArrivalMap, getOriginalArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
@@ -96,6 +96,7 @@ function assetMapper(
   readinessMap: Record<string, number>,
   locationMap: Record<string, number>): AssetUncheckedCreateInput {
 
+  if (!statusMap[r.status]) throw new Error(`No status in ${r.barcode}, ${r.status}`)
   return {
     barcode: r.barcode,
     serial_number: r.serial_number,
@@ -173,7 +174,7 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const holdMap = await getHoldMap(prisma)
   const originalArrivalMap = await getOriginalArrivalMap(con)
   const orgMap = await getOrganizationMap(prisma)
-  const statusMap = await getAvailabilityStatusIdMap(prisma)
+  const statusMap = await getStatusIdMap(prisma)
   const readinessMap = await getReadinessIdMap(prisma)
   const locationMap = await getLocationMap(prisma)
 

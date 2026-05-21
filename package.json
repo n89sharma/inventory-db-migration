@@ -7,8 +7,8 @@
     "compile": "npx tsc",
     "build": "prisma generate && npx tsc",
     "start": "node dist/src/index.js",
-    "bs": "npx tsc && node dist/src/index.js",
-    "dbreset": "npx prisma migrate reset",
+    "bs": "prisma generate && npx tsc && node dist/src/index.js",
+    "dbreset": "npx prisma migrate reset -f",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

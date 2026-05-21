@@ -45,6 +45,7 @@ export async function createReferenceData(prisma: PrismaClient) {
       { status: 'HARVESTED' },
       { status: 'SCRAPPED' },
       { status: 'RETURNED' },
+      { status: 'MISSING' },
       { status: 'LEASED' }
     ]
   })
@@ -109,24 +110,24 @@ export async function getReadinessIdMap(prisma: PrismaClient): Promise<Record<st
   }
 }
 
-export async function getAvailabilityStatusIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
+export async function getStatusIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
   const statuses = await prisma.status.findMany()
   const statusMap = getMap(statuses, (a) => a.status)
   return {
     'Unknown': statusMap['UNKNOWN'],
-    'In Transit': statusMap['AVAILABLE'],
-    'Stock': statusMap['AVAILABLE'],
+    'In Transit': statusMap['IN_STOCK'],
+    'Stock': statusMap['IN_STOCK'],
     'Hold': statusMap['HELD'],
     'Sold': statusMap['SOLD'],
     'Void': statusMap['UNKNOWN'],
-    'For parts': statusMap['PARTS'],
-    'Scrap': statusMap['SCRAP'],
+    'For parts': statusMap['HARVESTED'],
+    'Scrap': statusMap['SCRAPPED'],
     'Consignment': statusMap['UNKNOWN'],
-    'Transferred': statusMap['UNKNOWN'],
+    'Transferred': statusMap['IN_STOCK'],
     'Returned': statusMap['RETURNED'],
     'Alot': statusMap['HELD'],
     'Loan': statusMap['UNKNOWN'],
-    'Missing': statusMap['UNKNOWN'],
+    'Missing': statusMap['MISSING'],
     'Return To Vendor': statusMap['RETURNED'],
     'Return To Remarketing': statusMap['RETURNED'],
     'Lease': statusMap['LEASED']
