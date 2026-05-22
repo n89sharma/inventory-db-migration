@@ -33,7 +33,7 @@ const invoiceQuery = `
 `
 // JOIN USER DELETED
 
-interface InvoiceRow extends RowDataPacket {
+interface InvoiceRow {
   invoice_number: string,
   account_number: string,
   updated_by: number,
@@ -63,7 +63,7 @@ const invoiceCreator = (prisma: PrismaClient, e: any) => prisma.invoice.createMa
 export async function createInvoiceEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<InvoiceRow[]>(invoiceQuery)
+  const [results] = await con.query<(InvoiceRow & RowDataPacket)[]>(invoiceQuery)
 
   console.log('mapping')
   const orgMap = await getOrganizationMap(prisma)

@@ -31,7 +31,7 @@ const techSpecQuery = (floor: number, ceiling: number) => `
 
 `
 
-interface TechSpecRow extends RowDataPacket {
+interface TechSpecRow {
   barcode: string,
   cassettes: number,
   internal_finisher: string,
@@ -72,7 +72,7 @@ async function createTechSpecificationEntitiesBatch(
   assetMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
-  const [results] = await con.query<TechSpecRow[]>(techSpecQuery(floor, ceiling))
+  const [results] = await con.query<(TechSpecRow & RowDataPacket)[]>(techSpecQuery(floor, ceiling))
 
   console.log('mapping')
   const mappedEntities = Array.from(results).map((r) => {

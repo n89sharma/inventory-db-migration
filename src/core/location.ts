@@ -18,7 +18,7 @@ const locationQuery = `
     GROUP BY 1,2,3
 `
 
-interface LocationRow extends RowDataPacket {
+interface LocationRow {
   city_code: string,
   street: string,
   bin: string
@@ -41,7 +41,7 @@ export async function createLocationEntities(prisma: PrismaClient, con: Connecti
   await createStandardZoneLocations(prisma)
 
   console.log('fetching source entities')
-  const [results] = await con.query<LocationRow[]>(locationQuery)
+  const [results] = await con.query<(LocationRow & RowDataPacket)[]>(locationQuery)
 
   console.log('mapping')
   const warehouseMap = await getWarehouseMap(prisma)

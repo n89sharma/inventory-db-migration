@@ -18,7 +18,7 @@ const assetPartsQuery = `
 `
 // JOIN USER DELETED
 
-interface AssetPartRow extends RowDataPacket {
+interface AssetPartRow {
   recipient: string,
   donor: string,
   updated_at: string,
@@ -72,7 +72,7 @@ const assetPartCreator = (prisma: PrismaClient, e: any) => prisma.partTransfer.c
 export async function createAssetPartEntities(prisma: PrismaClient, con: Connection) {
 
   console.log(`fetching source entities.`)
-  const [results] = await con.query<AssetPartRow[]>(assetPartsQuery)
+  const [results] = await con.query<(AssetPartRow & RowDataPacket)[]>(assetPartsQuery)
 
   console.log('mapping')
   const assetMap = await getAssetMap(prisma)

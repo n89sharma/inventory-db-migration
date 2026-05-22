@@ -55,7 +55,7 @@ const assetQuery = (floor: number, ceiling: number) => `
     WHERE i.inventory_id BETWEEN ${floor} AND ${ceiling}
 `
 
-interface AssetRow extends RowDataPacket {
+interface AssetRow {
   barcode: string,
   serial_number: string,
   brand: string,
@@ -101,7 +101,7 @@ function assetMapper(
     barcode: r.barcode,
     serial_number: r.serial_number,
     model_id: modelMap[`${brandMap[r.brand]}:${r.model}`],
-    location_id: binLocationMap[`${warehouseMap[`${r.warehouse_code}:${r.warehouse_street}`]}:${r.location}`],
+    location_id: binLocationMap[`${warehouseMap[`${r.warehouse_code}:${r.warehouse_street}`]}:${r.bin}`],
     status_id: statusMap[r.status],
     readiness_id: !!readinessMap[r.technical_status] ? readinessMap[r.technical_status] : readinessMap['Not Tested'],
     purchase_invoice_id: invoiceMap[`${orgMap[r.arrival_vendor_account_number]}:${r.purchase_invoice_number}`],
@@ -134,7 +134,7 @@ async function createAssetEntitiesBatch(
   binLocationMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
-  const [results] = await con.query<AssetRow[]>(assetQuery(floor, ceiling))
+  const [results] = await con.query<(AssetRow & RowDataPacket)[]>(assetQuery(floor, ceiling))
 
   console.log('mapping')
 

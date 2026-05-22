@@ -27,7 +27,7 @@ const holdQuery = `
 `
 // JOIN USER DELETED
 
-interface HoldRow extends RowDataPacket {
+interface HoldRow {
   hold_number: string,
   created_by: number,
   created_for: number,
@@ -61,7 +61,7 @@ const holdCreator = (prisma: PrismaClient, e: any) => prisma.hold.createMany({ d
 export async function createHoldEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<HoldRow[]>(holdQuery)
+  const [results] = await con.query<(HoldRow & RowDataPacket)[]>(holdQuery)
 
   console.log('mapping')
   const orgMap = await getOrganizationMap(prisma)

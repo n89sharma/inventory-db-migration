@@ -25,7 +25,7 @@ const departureQuery = `
 `
 // JOIN USER DELETED
 
-interface DepartureRow extends RowDataPacket {
+interface DepartureRow {
   departure_number: string,
   customer: string,
   code: string,
@@ -58,7 +58,7 @@ const departureCreator = (prisma: PrismaClient, e: any) => prisma.departure.crea
 export async function createDepartureEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<DepartureRow[]>(departureQuery)
+  const [results] = await con.query<(DepartureRow & RowDataPacket)[]>(departureQuery)
 
   console.log('mapping')
   const orgMap = await getOrganizationMap(prisma)

@@ -17,7 +17,7 @@ const modelQuery = `
     GROUP BY 1,2
 `
 
-interface ModelRow extends RowDataPacket {
+interface ModelRow {
   brand_name: string,
   model_name: string,
   asset_type: string,
@@ -42,7 +42,7 @@ const modelCreator = (prisma: PrismaClient, e: any) => prisma.model.createMany({
 export async function createModelEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<ModelRow[]>(modelQuery)
+  const [results] = await con.query<(ModelRow & RowDataPacket)[]>(modelQuery)
 
   console.log('mapping')
   const brandMap = await getBrandMap(prisma)

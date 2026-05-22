@@ -18,7 +18,7 @@ const costQuery = (floor: number, ceiling: number) => `
     WHERE inventory_id BETWEEN ${floor} AND ${ceiling}
 `
 
-interface CostRow extends RowDataPacket {
+interface CostRow {
   barcode: string,
   purchase_cost: string,
   transport_cost: string,
@@ -65,7 +65,7 @@ async function createCostEntitiesBatch(
   assetMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
-  const [results] = await con.query<CostRow[]>(costQuery(floor, ceiling))
+  const [results] = await con.query<(CostRow & RowDataPacket)[]>(costQuery(floor, ceiling))
 
   console.log('mapping')
   const mappedEntities = Array.from(results).map((r) => {

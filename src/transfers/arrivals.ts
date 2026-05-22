@@ -32,7 +32,7 @@ const originalArrivalsQuery = `
     CALL getHistoricArrivals()
 `
 
-interface ArrivalRow extends RowDataPacket {
+interface ArrivalRow {
   arrival_number: string,
   vendor: string,
   code: string,
@@ -43,7 +43,7 @@ interface ArrivalRow extends RowDataPacket {
   created_at: string
 }
 
-interface OriginalArrivalRow extends RowDataPacket {
+interface OriginalArrivalRow {
   barcode: string,
   arrival_number: string
 }
@@ -70,7 +70,7 @@ const arrivalCreator = (prisma: PrismaClient, e: any) => prisma.arrival.createMa
 export async function createArrivalEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<ArrivalRow[]>(arrivalQuery)
+  const [results] = await con.query<(ArrivalRow & RowDataPacket)[]>(arrivalQuery)
 
   console.log('mapping')
   const orgMap = await getOrganizationMap(prisma)
@@ -100,7 +100,7 @@ export async function getArrivalMap(prisma: PrismaClient) {
 export async function getOriginalArrivalMap(con: Connection) {
 
   console.log('fetching source entities')
-  const [results, metadata1] = await con.query<OriginalArrivalRow[]>(originalArrivalsQuery)
+  const [results, metadata1] = await con.query<(OriginalArrivalRow & RowDataPacket)[]>(originalArrivalsQuery)
   const [rows, metadata2] = results
 
   return rows.reduce((map: any, e: OriginalArrivalRow) => {

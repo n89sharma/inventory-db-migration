@@ -15,7 +15,7 @@ const assetTransferQuery = `
     GROUP BY 1,2
 `
 
-interface AssetTransferRow extends RowDataPacket {
+interface AssetTransferRow {
   barcode: string,
   transfer_number: string
 }
@@ -36,7 +36,7 @@ const assetTransferCreator = (prisma: PrismaClient, e: any) => prisma.assetTrans
 export async function createAssetTransferEntities(prisma: PrismaClient, con: Connection) {
 
   console.log(`fetching source entities.`)
-  const [results] = await con.query<AssetTransferRow[]>(assetTransferQuery)
+  const [results] = await con.query<(AssetTransferRow & RowDataPacket)[]>(assetTransferQuery)
 
   console.log('mapping')
   const assetMap = await getAssetMap(prisma)

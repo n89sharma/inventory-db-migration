@@ -23,7 +23,7 @@ const commentQuery = (floor: number, ceiling: number) => `
 `
 // JOIN USER DELETED
 
-interface CommentRow extends RowDataPacket {
+interface CommentRow {
   barcode: string,
   created_by: number,
   comment: string,
@@ -56,7 +56,7 @@ async function createAssetEntitiesBatch(
   userMap: Record<number, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
-  const [results] = await con.query<CommentRow[]>(commentQuery(floor, ceiling))
+  const [results] = await con.query<(CommentRow & RowDataPacket)[]>(commentQuery(floor, ceiling))
 
   console.log('mapping')
   const mappedEntities = Array.from(results).map((r) => {

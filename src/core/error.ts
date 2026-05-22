@@ -22,7 +22,7 @@ const errorQuery = `
     GROUP BY 1,2
 `
 
-interface ErrorRow extends RowDataPacket {
+interface ErrorRow {
   brand_name: string,
   code: string,
   description: string,
@@ -41,7 +41,7 @@ const errorCreator = (prisma: PrismaClient, e: any) => prisma.error.createMany({
 export async function createErrorEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<ErrorRow[]>(errorQuery)
+  const [results] = await con.query<(ErrorRow & RowDataPacket)[]>(errorQuery)
 
   console.log('mapping')
   const brandMap = await getBrandMap(prisma)

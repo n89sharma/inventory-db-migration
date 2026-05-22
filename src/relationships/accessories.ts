@@ -15,7 +15,7 @@ const accessoriesQuery = (floor: number, ceiling: number) => `
     GROUP BY 1,2
 `
 
-interface AccessoryRow extends RowDataPacket {
+interface AccessoryRow {
   barcode: string,
   accessory: string
 }
@@ -42,7 +42,7 @@ async function createAccessoriesBatch(
   accessoryMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
-  const [results] = await con.query<AccessoryRow[]>(accessoriesQuery(floor, ceiling))
+  const [results] = await con.query<(AccessoryRow & RowDataPacket)[]>(accessoriesQuery(floor, ceiling))
 
   console.log('mapping')
   const mappedEntities = Array.from(results).map((r) => {

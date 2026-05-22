@@ -29,7 +29,7 @@ const errorQuery = `
 `
 // JOIN USER DELETED
 
-interface ErrorRow extends RowDataPacket {
+interface ErrorRow {
   barcode: string,
   brand: string,
   code: string,
@@ -61,7 +61,7 @@ const errorCreator = (prisma: PrismaClient, e: any) => prisma.assetError.createM
 
 export async function createAssetErrorEntities(prisma: PrismaClient, con: Connection) {
   console.log(`fetching source entities.`)
-  const [results] = await con.query<ErrorRow[]>(errorQuery)
+  const [results] = await con.query<(ErrorRow & RowDataPacket)[]>(errorQuery)
 
   console.log('mapping')
   const assetMap = await getAssetMap(prisma)

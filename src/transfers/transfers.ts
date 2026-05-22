@@ -25,7 +25,7 @@ const transferQuery = `
 `
 // JOIN USER DELETED
 
-interface TransferRow extends RowDataPacket {
+interface TransferRow {
   transfer_number: string,
   origin_code: string,
   origin_street: string,
@@ -59,7 +59,7 @@ const transferCreator = (prisma: PrismaClient, e: any) => prisma.transfer.create
 export async function createTransferEntities(prisma: PrismaClient, con: Connection) {
 
   console.log('fetching source entities')
-  const [results] = await con.query<TransferRow[]>(transferQuery)
+  const [results] = await con.query<(TransferRow & RowDataPacket)[]>(transferQuery)
 
   console.log('mapping')
   const orgMap = await getOrganizationMap(prisma)
