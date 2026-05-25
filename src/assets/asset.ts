@@ -5,12 +5,25 @@ import { getBrandMap } from '../core/brand.js'
 import { getBinLocationMap } from '../core/location.js'
 import { getModelMap } from '../core/model.js'
 import { getOrganizationMap } from '../core/organization.js'
-import { getReadinessIdMap, getStatusIdMap } from '../core/referenceData.js'
+import { getCountryIdMap, getReadinessIdMap, getStatusIdMap } from '../core/referenceData.js'
 import { getWarehouseMap } from '../core/warehouse.js'
 import { getArrivalMap, getOriginalArrivalMap } from '../transfers/arrivals.js'
 import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
 import { getInvoiceMap } from '../transfers/invoices.js'
+
+const countryCommentQuery = (floor: number, ceiling: number) => `
+    SELECT TRIM(i.barcode) AS barcode, r.remarks AS remarks
+    FROM inventory i
+    JOIN inventory_remark_master r ON r.inventory_id = i.inventory_id
+    WHERE i.inventory_id BETWEEN ${floor} AND ${ceiling}
+      AND r.remarks LIKE '%made in%'
+`
+
+interface CountryCommentRow {
+  barcode: string,
+  remarks: string
+}
 
 const assetQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -94,7 +107,8 @@ function assetMapper(
   orgMap: Record<string, number>,
   statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
-  binLocationMap: Record<string, number>): AssetUncheckedCreateInput {
+  binLocationMap: Record<string, number>,
+  countryByBarcode: Record<string, number>): AssetUncheckedCreateInput {
 
   if (!statusMap[r.status]) throw new Error(`No status in ${r.barcode}, ${r.status}`)
   return {
@@ -109,8 +123,32 @@ function assetMapper(
     arrival_id: arrivalMap[r.arrival_number] ? arrivalMap[r.arrival_number] : arrivalMap[originalArrivalMap[r.barcode]],
     departure_id: departureMap[r.departure_number],
     hold_id: holdMap[r.hold_number],
+    country_of_origin_id: countryByBarcode[r.barcode] ?? null,
     created_at: new Date(r.created_at)
   }
+}
+
+async function getCountryByBarcodeMap(
+  con: Connection,
+  countryMap: Record<string, number>,
+  floor: number,
+  ceiling: number
+): Promise<Record<string, number>> {
+  const [results] = await con.query<(CountryCommentRow & RowDataPacket)[]>(countryCommentQuery(floor, ceiling))
+  const map: Record<string, number> = {}
+  for (const r of results) {
+    const countryId = getCountryIdFromComment(r.remarks, countryMap)
+    if (countryId !== null) {
+      map[r.barcode.trim()] = countryId
+    }
+  }
+  return map
+}
+
+function getCountryIdFromComment(comment: string, countryMap: Record<string, number>): number | null {
+  const match = comment?.match(/made in (\w+)/i)
+  if (!match) return null
+  return countryMap[match[1].toUpperCase()] ?? null
 }
 
 const assetCreator = (prisma: PrismaClient, e: any) => prisma.asset.createMany({ data: e })
@@ -131,10 +169,12 @@ async function createAssetEntitiesBatch(
   orgMap: Record<string, number>,
   statusMap: Record<string, number>,
   readinessMap: Record<string, number>,
-  binLocationMap: Record<string, number>) {
+  binLocationMap: Record<string, number>,
+  countryMap: Record<string, number>) {
 
   console.log(`fetching source entities. ${floor} - ${ceiling}`)
   const [results] = await con.query<(AssetRow & RowDataPacket)[]>(assetQuery(floor, ceiling))
+  const countryByBarcode = await getCountryByBarcodeMap(con, countryMap, floor, ceiling)
 
   console.log('mapping')
 
@@ -152,7 +192,8 @@ async function createAssetEntitiesBatch(
       orgMap,
       statusMap,
       readinessMap,
-      binLocationMap
+      binLocationMap,
+      countryByBarcode
     )
   })
 
@@ -177,10 +218,11 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
   const statusMap = await getStatusIdMap(prisma)
   const readinessMap = await getReadinessIdMap(prisma)
   const binLocationMap = await getBinLocationMap(prisma)
+  const countryMap = await getCountryIdMap(prisma)
 
   const start = 0
   const step = 50000
-  for (let i = start; i <= 500000; i = i + step) {
+  for (let i = start; i <= 600000; i = i + step) {
     let floor = i + 1
     let ceiling = i + step
     await createAssetEntitiesBatch(
@@ -199,7 +241,8 @@ export async function createAssetEntities(prisma: PrismaClient, con: Connection)
       orgMap,
       statusMap,
       readinessMap,
-      binLocationMap
+      binLocationMap,
+      countryMap
     )
   }
 }

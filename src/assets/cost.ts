@@ -85,7 +85,7 @@ export async function createCostEntities(prisma: PrismaClient, con: Connection) 
   const assetMap = await getAssetMap(prisma)
   const start = 0
   const step = 50000
-  for (let i = start; i < 500000; i = i + step) {
+  for (let i = start; i < 600000; i = i + step) {
     let floor = i + 1
     let ceiling = i + step
     await createCostEntitiesBatch(prisma, con, floor, ceiling, assetMap)

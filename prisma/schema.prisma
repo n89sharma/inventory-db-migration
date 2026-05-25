@@ -50,6 +50,12 @@ model InvoiceType {
   invoices Invoice[]
 }
 
+model Country {
+  id     Int     @id @default(autoincrement())
+  name   String
+  assets Asset[]
+}
+
 // MODELS
 model Asset {
   id            Int    @id @default(autoincrement())
@@ -68,6 +74,7 @@ model Asset {
   hold_id                 Int?
   cost                    Cost?
   technical_specification TechnicalSpecification?
+  country_of_origin_id    Int?
   created_at              DateTime
 
   is_in_transit Boolean @default(false)
@@ -91,6 +98,7 @@ model Asset {
   asset_transfers   AssetTransfer[]
   files             File[]
   comments          Comment[]
+  country_of_origin Country?         @relation(fields: [country_of_origin_id], references: [id])
 
   @@index([barcode_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([serial_normalized(ops: raw("gin_trgm_ops"))], type: Gin)
@@ -119,6 +127,10 @@ model TechnicalSpecification {
   drum_life_m       Int?
   drum_life_y       Int?
   drum_life_k       Int?
+  toner_life_c      Int?
+  toner_life_m      Int?
+  toner_life_y      Int?
+  toner_life_k      Int?
 
   asset Asset @relation(fields: [asset_id], references: [id])
 

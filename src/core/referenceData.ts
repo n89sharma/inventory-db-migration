@@ -1,3 +1,4 @@
+import { Country } from '../../generated/prisma/browser.js'
 import { Accessory, AssetType, FileType, Invoice, PrismaClient, Readiness, Status, Zone } from '../../generated/prisma/client.js'
 import { createUserEntities } from './user.js'
 
@@ -81,9 +82,23 @@ export async function createReferenceData(prisma: PrismaClient) {
       { zone: 'BIN' },
     ]
   })
+
+  await prisma.country.createMany({
+    data: [
+      { name: 'THAILAND' },
+      { name: 'CHINA' },
+      { name: 'JAPAN' },
+      { name: 'VIETNAM' },
+      { name: 'MEXICO' },
+      { name: 'USA' },
+      { name: 'PHILIPPINES' },
+      { name: 'MALAYSIA' },
+      { name: 'TAIWAN' },
+    ]
+  })
 }
 
-type PrismaEntity = Invoice | FileType | Readiness | Status | AssetType | Accessory | Zone
+type PrismaEntity = Invoice | FileType | Readiness | Status | AssetType | Accessory | Zone | Country
 
 function getMap<T extends PrismaEntity>(entities: T[], getField: (e: T) => string) {
   return entities.reduce((map, e: T) => {
@@ -170,4 +185,9 @@ export async function getInvoiceTypeIdMap(prisma: PrismaClient): Promise<Record<
 export async function getZoneIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
   const zones = await prisma.zone.findMany()
   return getMap(zones, (z) => z.zone)
+}
+
+export async function getCountryIdMap(prisma: PrismaClient): Promise<Record<string, number>> {
+  const countries = await prisma.country.findMany()
+  return getMap(countries, (c) => c.name)
 }

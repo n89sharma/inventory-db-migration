@@ -1,7 +1,7 @@
+import { Connection, RowDataPacket } from 'mysql2/promise'
 import { PrismaClient } from '../../generated/prisma/client.js'
-import { RowDataPacket, Connection } from 'mysql2/promise'
-import { getAssetMap } from './asset.js'
 import { TechnicalSpecificationUncheckedCreateInput } from '../../generated/prisma/models.js'
+import { getAssetMap } from './asset.js'
 
 const techSpecQuery = (floor: number, ceiling: number) => `
     SELECT
@@ -93,7 +93,7 @@ export async function createTechSpecEntities(prisma: PrismaClient, con: Connecti
 
   const start = 0
   const step = 50000
-  for (let i = start; i <= 500000; i = i + step) {
+  for (let i = start; i <= 600000; i = i + step) {
     let floor = i + 1
     let ceiling = i + step
     await createTechSpecificationEntitiesBatch(prisma, con, floor, ceiling, assetMap)

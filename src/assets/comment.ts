@@ -77,7 +77,7 @@ export async function createCommentEntities(prisma: PrismaClient, con: Connectio
   const assetMap = await getAssetMap(prisma)
   const userMap = await getUserMap(prisma)
 
-  for (let i = start; i < 381007; i = i + step) {
+  for (let i = start; i < 450000; i = i + step) {
     let floor = i + 1
     let ceiling = i + step
     await createAssetEntitiesBatch(prisma, con, floor, ceiling, assetMap, userMap)
