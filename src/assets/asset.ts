@@ -12,12 +12,12 @@ import { getDepartureMap } from '../transfers/departures.js'
 import { getHoldMap } from '../transfers/holds.js'
 import { getInvoiceMap } from '../transfers/invoices.js'
 
-const countryCommentQuery = (floor: number, ceiling: number) => `
+const countryCommentQuery = (floor: number, ceiling: number, countryNames: string[]) => `
     SELECT TRIM(i.barcode) AS barcode, r.remarks AS remarks
     FROM inventory i
     JOIN inventory_remark_master r ON r.inventory_id = i.inventory_id
     WHERE i.inventory_id BETWEEN ${floor} AND ${ceiling}
-      AND r.remarks LIKE '%made in%'
+      AND r.remarks REGEXP '[[:<:]](${countryNames.join('|')})[[:>:]]'
 `
 
 interface CountryCommentRow {
@@ -134,10 +134,12 @@ async function getCountryByBarcodeMap(
   floor: number,
   ceiling: number
 ): Promise<Record<string, number>> {
-  const [results] = await con.query<(CountryCommentRow & RowDataPacket)[]>(countryCommentQuery(floor, ceiling))
+  const countryNames = Object.keys(countryMap)
+  const countryRegex = new RegExp(`\\b(${countryNames.join('|')})\\b`, 'i')
+  const [results] = await con.query<(CountryCommentRow & RowDataPacket)[]>(countryCommentQuery(floor, ceiling, countryNames))
   const map: Record<string, number> = {}
   for (const r of results) {
-    const countryId = getCountryIdFromComment(r.remarks, countryMap)
+    const countryId = getCountryIdFromComment(r.remarks, countryMap, countryRegex)
     if (countryId !== null) {
       map[r.barcode.trim()] = countryId
     }
@@ -145,8 +147,11 @@ async function getCountryByBarcodeMap(
   return map
 }
 
-function getCountryIdFromComment(comment: string, countryMap: Record<string, number>): number | null {
-  const match = comment?.match(/made in (\w+)/i)
+function getCountryIdFromComment(
+  comment: string,
+  countryMap: Record<string, number>,
+  countryRegex: RegExp): number | null {
+  const match = comment?.match(countryRegex)
   if (!match) return null
   return countryMap[match[1].toUpperCase()] ?? null
 }
